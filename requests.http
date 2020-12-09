@@ -1,0 +1,44 @@
+# First, generate some bikes
+POST http://localhost:8080/?bikes=20&bikeType=city
+Accept: application/json
+
+###
+
+# Show available bikes
+GET http://localhost:8080/bikes
+Accept: application/json
+
+###
+
+# Request one of the available bikes
+POST http://localhost:8080/requestBike?bikeId=1972f57a-babe-44a7-b5dd-1a1333da521b
+Accept: application/json
+
+###
+GET http://localhost:8080/findPayment?reference=95496b07-1e9f-4639-8ff3-29b1c58cd89a
+Accept: application/json
+
+###
+
+POST http://localhost:8080/acceptPayment?id=7c38518b-3c4e-4b4b-9172-c4bef65ff3b0
+Accept: application/json
+
+###
+
+GET http://localhost:8080/bikes/91480d9a-20e3-43a7-a88f-8712365a4f4c
+Accept: application/json
+
+###
+
+# Return one of the available bikes
+POST http://localhost:8080/returnBike?bikeId=8e648607-6294-44aa-a71a-b7a2b0dae6e2
+Accept: application/json
+
+###
+
+# GENERATE RENTALS
+
+POST http://localhost:8080/generateRentals?bikeType=city&loops=30&concurrency=10
+Accept: text/plain
+
+###
