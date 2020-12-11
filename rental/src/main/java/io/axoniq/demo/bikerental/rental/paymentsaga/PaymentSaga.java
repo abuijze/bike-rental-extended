@@ -1,4 +1,4 @@
-package io.axoniq.demo.bikerental.rental.saga;
+package io.axoniq.demo.bikerental.rental.paymentsaga;
 
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentConfirmedEvent;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentRejectedEvent;
