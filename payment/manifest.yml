@@ -6,6 +6,6 @@ applications:
     path: target/payment-0.0.1-SNAPSHOT.jar
     env:
       JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 11.+ } }'
-    #    SPRING_PROFILES_ACTIVE: 'postgres'
     services:
       - AxonServer
+      - postgresql
