@@ -43,6 +43,12 @@ public class RentalPaymentSagaApplication {
 														.andBatchSize(200)
 														.andInitialTrackingToken(StreamableMessageSource::createHeadToken)
 		);
+		eventProcessing.registerTrackingEventProcessor(
+				"io.axoniq.demo.bikerental.payment",
+				Configuration::eventStore,
+				c -> TrackingEventProcessorConfiguration.forParallelProcessing(4)
+														.andBatchSize(200)
+		);
 	}
 
 }

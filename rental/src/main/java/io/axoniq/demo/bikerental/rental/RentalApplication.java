@@ -43,6 +43,13 @@ public class RentalApplication {
 														.andBatchSize(200)
 														.andInitialTrackingToken(StreamableMessageSource::createHeadToken)
 		);
+		eventProcessing.registerTrackingEventProcessor(
+				"io.axoniq.demo.bikerental.rental.query",
+				Configuration::eventStore,
+				c -> TrackingEventProcessorConfiguration.forParallelProcessing(4)
+														.andBatchSize(200)
+		);
+
 	}
 
 }
