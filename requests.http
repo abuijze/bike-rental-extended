@@ -10,6 +10,12 @@ Accept: application/json
 
 ###
 
+# Show bike status
+GET {{hostname}}/bikes/bc3a2bf1-120a-4b3f-84a9-9a8b67a73624
+Accept: application/json
+
+###
+
 # Request one of the available bikes
 POST {{hostname}}/requestBike?bikeId=1972f57a-babe-44a7-b5dd-1a1333da521b
 Accept: application/json
