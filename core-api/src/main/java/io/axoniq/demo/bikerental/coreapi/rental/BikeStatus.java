@@ -55,6 +55,19 @@ public class BikeStatus {
         return status;
     }
 
+    public String description() {
+        switch (status) {
+            case RENTED:
+                return String.format("Rented by %s in %s", renter, location);
+            case AVAILABLE:
+                return String.format("Available for rental in %s.", location);
+            case REQUESTED:
+                return String.format("Requested by %s in %s", renter, location);
+            default:
+                return "Status unknown";
+        }
+    }
+
     public String getBikeType() {
         return bikeType;
     }

@@ -34,7 +34,10 @@ public class BikeStatusProjection {
                                 bs.requestedBy(event.getRenter());
                                 return bs;
                             })
-                            .ifPresent(bs -> updateEmitter.emit(String.class, event.getBikeId()::equals, bs));
+                            .ifPresent(bs -> {
+                                updateEmitter.emit(q -> "findAll".equals(q.getQueryName()), bs);
+                                updateEmitter.emit(String.class, event.getBikeId()::equals, bs);
+                            });
     }
 
     @EventHandler
@@ -44,7 +47,10 @@ public class BikeStatusProjection {
                                 bs.rentedBy(event.getRenter());
                                 return bs;
                             })
-                            .ifPresent(bs -> updateEmitter.emit(String.class, event.getBikeId()::equals, bs));
+                            .ifPresent(bs -> {
+                                updateEmitter.emit(q -> "findAll".equals(q.getQueryName()), bs);
+                                updateEmitter.emit(String.class, event.getBikeId()::equals, bs);
+                            });
     }
 
     @EventHandler
@@ -54,7 +60,10 @@ public class BikeStatusProjection {
                                 bs.returnedAt(event.getLocation());
                                 return bs;
                             })
-                            .ifPresent(bs -> updateEmitter.emit(String.class, event.getBikeId()::equals, bs));
+                            .ifPresent(bs -> {
+                                updateEmitter.emit(q -> "findAll".equals(q.getQueryName()), bs);
+                                updateEmitter.emit(String.class, event.getBikeId()::equals, bs);
+                            });
 
     }
 

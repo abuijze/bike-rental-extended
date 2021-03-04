@@ -10,6 +10,7 @@ import io.axoniq.demo.bikerental.coreapi.rental.ReturnBikeCommand;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
+import org.axonframework.queryhandling.SubscriptionQueryBackpressure;
 import org.axonframework.queryhandling.SubscriptionQueryResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -85,6 +86,25 @@ public class RentalController {
     public CompletableFuture<Void> acceptPayment(@RequestParam("id") String paymentId) {
         return commandGateway.send(new ConfirmPaymentCommand(paymentId));
     }
+
+
+    @GetMapping(value = "watch", produces = "text/event-stream")
+    public Flux<String> watchAll() {
+        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQuery = queryGateway.subscriptionQuery("findAll", null, ResponseTypes.multipleInstancesOf(BikeStatus.class), ResponseTypes.instanceOf(BikeStatus.class), SubscriptionQueryBackpressure.defaultBackpressure());
+        return subscriptionQuery.initialResult()
+                                .flatMapMany(Flux::fromIterable)
+                                .concatWith(subscriptionQuery.updates())
+                                .map(bs -> bs.getBikeId() + " -> " + bs.description());
+    }
+
+    @GetMapping(value = "watch/{bikeId}", produces = "text/event-stream")
+    public Flux<String> watchBike(@PathVariable("bikeId") String bikeId) {
+        SubscriptionQueryResult<BikeStatus, BikeStatus> subscriptionQuery = queryGateway.subscriptionQuery("findOne", bikeId, ResponseTypes.instanceOf(BikeStatus.class), ResponseTypes.instanceOf(BikeStatus.class), SubscriptionQueryBackpressure.defaultBackpressure());
+        return subscriptionQuery.initialResult()
+                                .concatWith(subscriptionQuery.updates())
+                                .map(bs -> bs.getBikeId() + " -> " + bs.description());
+    }
+
 
     @PostMapping(value = "/generateRentals")
     public Flux<String> generateData(@RequestParam(value = "bikeType") String bikeType,
