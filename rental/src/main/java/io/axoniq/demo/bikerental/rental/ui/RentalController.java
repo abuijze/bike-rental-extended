@@ -113,7 +113,7 @@ public class RentalController {
 
         return Flux.range(0, loops)
                    .flatMap(j -> executeRentalCycle(bikeType, randomRenter()).map(r -> "OK - Rented, Payed and Returned\n")
-                                                                                            .onErrorResume(e -> Mono.just("Not ok: " + e.getCause().getMessage() + "\n")),
+                                                                                            .onErrorResume(e -> Mono.just("Not ok: " + e.getMessage() + "\n")),
                             concurrency);
     }
 
