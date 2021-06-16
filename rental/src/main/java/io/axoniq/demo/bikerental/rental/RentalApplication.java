@@ -46,14 +46,14 @@ public class RentalApplication {
 		eventProcessing.registerPooledStreamingEventProcessor(
 				"PaymentSagaProcessor",
 				Configuration::eventStore,
-				(c, b) -> b.workerExecutorService(workerExecutorService())
+				(c, b) -> b.workerExecutor(workerExecutorService())
 						   .batchSize(100)
 						   .initialToken(StreamableMessageSource::createHeadToken)
 		);
 		eventProcessing.registerPooledStreamingEventProcessor(
 				"io.axoniq.demo.bikerental.rental.query",
 				Configuration::eventStore,
-				(c, b) -> b.workerExecutorService(workerExecutorService())
+				(c, b) -> b.workerExecutor(workerExecutorService())
 						   .batchSize(100)
 
 		);
