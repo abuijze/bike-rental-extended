@@ -12,6 +12,7 @@ import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.axonframework.queryhandling.SubscriptionQueryBackpressure;
 import org.axonframework.queryhandling.SubscriptionQueryResult;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,6 +57,27 @@ public class RentalController {
     @GetMapping("/bikes")
     public CompletableFuture<List<BikeStatus>> findAll() {
         return queryGateway.query("findAll", null, ResponseTypes.multipleInstancesOf(BikeStatus.class));
+    }
+
+    @GetMapping("/bikeUpdates")
+    public Flux<ServerSentEvent<String>> subscribeToAllUpdates() {
+        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery("findAll", null, ResponseTypes.multipleInstancesOf(BikeStatus.class), ResponseTypes.instanceOf(BikeStatus.class));
+        return subscriptionQueryResult.initialResult()
+                                      .flatMapMany(Flux::fromIterable)
+                                      .concatWith(subscriptionQueryResult.updates())
+                                      .doFinally(s -> subscriptionQueryResult.close())
+                .map(BikeStatus::description)
+                .map(description -> ServerSentEvent.builder(description).build());
+    }
+
+    @GetMapping("/bikeUpdates/{bikeId}")
+    public Flux<ServerSentEvent<String>> subscribeToBikeUpdates(@PathVariable("bikeId") String bikeId) {
+        SubscriptionQueryResult<BikeStatus, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery("findOne", bikeId, BikeStatus.class, BikeStatus.class);
+        return subscriptionQueryResult.initialResult()
+                                      .concatWith(subscriptionQueryResult.updates())
+                                      .doFinally(s -> subscriptionQueryResult.close())
+                .map(BikeStatus::description)
+                .map(description -> ServerSentEvent.builder(description).build());
     }
 
     @PostMapping("/requestBike")

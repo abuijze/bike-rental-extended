@@ -24,7 +24,9 @@ public class BikeStatusProjection {
 
     @EventHandler
     public void on(BikeRegisteredEvent event) {
-        bikeStatusRepository.save(new BikeStatus(event.getBikeId(), event.getBikeType(), event.getLocation()));
+        var bikeStatus = new BikeStatus(event.getBikeId(), event.getBikeType(), event.getLocation());
+        bikeStatusRepository.save(bikeStatus);
+        updateEmitter.emit(q -> "findAll".equals(q.getQueryName()), bikeStatus);
     }
 
     @EventHandler
