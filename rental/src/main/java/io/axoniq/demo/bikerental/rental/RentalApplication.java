@@ -23,40 +23,40 @@ import java.util.concurrent.ScheduledExecutorService;
 @SpringBootApplication
 public class RentalApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(RentalApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(RentalApplication.class, args);
+    }
 
-	@Bean
-	public DeadlineManager deadlineManager(TransactionManager transactionManager,
-										   Configuration config) {
-		return SimpleDeadlineManager.builder()
-									.transactionManager(transactionManager)
-									.scopeAwareProvider(new ConfigurationScopeAwareProvider(config))
-									.build();
-	}
+    @Bean
+    public DeadlineManager deadlineManager(TransactionManager transactionManager,
+                                           Configuration config) {
+        return SimpleDeadlineManager.builder()
+                                    .transactionManager(transactionManager)
+                                    .scopeAwareProvider(new ConfigurationScopeAwareProvider(config))
+                                    .build();
+    }
 
-	@Bean(destroyMethod = "shutdown")
-	public ScheduledExecutorService workerExecutorService() {
-		return Executors.newScheduledThreadPool(4);
-	}
+    @Bean(destroyMethod = "shutdown")
+    public ScheduledExecutorService workerExecutorService() {
+        return Executors.newScheduledThreadPool(4);
+    }
 
-	@Autowired
-	public void configure(EventProcessingConfigurer eventProcessing) {
-		eventProcessing.registerPooledStreamingEventProcessor(
-				"PaymentSagaProcessor",
-				Configuration::eventStore,
-				(c, b) -> b.workerExecutor(workerExecutorService())
-						   .batchSize(100)
-						   .initialToken(StreamableMessageSource::createHeadToken)
-		);
-		eventProcessing.registerPooledStreamingEventProcessor(
-				"io.axoniq.demo.bikerental.rental.query",
-				Configuration::eventStore,
-				(c, b) -> b.workerExecutor(workerExecutorService())
-						   .batchSize(100)
+    @Autowired
+    public void configure(EventProcessingConfigurer eventProcessing) {
+        eventProcessing.registerPooledStreamingEventProcessor(
+                "PaymentSagaProcessor",
+                Configuration::eventStore,
+                (c, b) -> b.workerExecutor(workerExecutorService())
+                           .batchSize(100)
+                           .initialToken(StreamableMessageSource::createHeadToken)
+        );
+        eventProcessing.registerPooledStreamingEventProcessor(
+                "io.axoniq.demo.bikerental.rental.query",
+                Configuration::eventStore,
+                (c, b) -> b.workerExecutor(workerExecutorService())
+                           .batchSize(100)
 
-		);
-	}
+        );
+    }
 
 }
