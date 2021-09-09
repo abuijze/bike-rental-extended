@@ -11,6 +11,7 @@ import org.axonframework.deadline.DeadlineManager;
 import org.axonframework.deadline.annotation.DeadlineHandler;
 import org.axonframework.messaging.Scope;
 import org.axonframework.messaging.ScopeDescriptor;
+import org.axonframework.modelling.saga.EndSaga;
 import org.axonframework.modelling.saga.SagaEventHandler;
 import org.axonframework.modelling.saga.SagaLifecycle;
 import org.axonframework.modelling.saga.StartSaga;
@@ -40,12 +41,14 @@ public class PaymentSaga {
         preparePayment(event.getRentalReference());
     }
 
+    @EndSaga
     @SagaEventHandler(associationProperty = "paymentReference")
     public void on(PaymentConfirmedEvent event) {
         // we approve the bike request
         commandGateway.send(new ApproveRequestCommand(bikeId, renter));
     }
 
+    @EndSaga
     @SagaEventHandler(associationProperty = "paymentReference")
     public void on(PaymentRejectedEvent event) {
         commandGateway.send(new RejectRequestCommand(bikeId, renter));
