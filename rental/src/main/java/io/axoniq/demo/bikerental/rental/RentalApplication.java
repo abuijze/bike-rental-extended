@@ -1,5 +1,6 @@
 package io.axoniq.demo.bikerental.rental;
 
+import com.thoughtworks.xstream.XStream;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
 import org.axonframework.common.transaction.TransactionManager;
 import org.axonframework.config.Configuration;
@@ -39,6 +40,11 @@ public class RentalApplication {
     @Bean(destroyMethod = "shutdown")
     public ScheduledExecutorService workerExecutorService() {
         return Executors.newScheduledThreadPool(4);
+    }
+
+    @Autowired
+    public void configureXStreamSecurity(XStream xStream) {
+        xStream.allowTypesByWildcard(new String[]{"io.axoniq.demo.bikerental.coreapi.**"});
     }
 
     @Autowired

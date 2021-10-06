@@ -1,5 +1,6 @@
 package io.axoniq.demo.bikerental.payment;
 
+import com.thoughtworks.xstream.XStream;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentStatus;
 import org.axonframework.config.Configuration;
 import org.axonframework.config.EventProcessingConfigurer;
@@ -24,6 +25,11 @@ public class PaymentApplication {
 	@Bean(destroyMethod = "shutdown")
 	public ScheduledExecutorService workerExecutorService() {
 		return Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
+	}
+
+	@Autowired
+	public void configureXStreamSecurity(XStream xStream) {
+		xStream.allowTypesByWildcard(new String[]{"io.axoniq.demo.bikerental.coreapi.**"});
 	}
 
 	@Autowired
