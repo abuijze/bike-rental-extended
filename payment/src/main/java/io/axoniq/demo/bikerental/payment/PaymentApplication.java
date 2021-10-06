@@ -37,7 +37,7 @@ public class PaymentApplication {
 		config.registerPooledStreamingEventProcessor(
 				"io.axoniq.demo.bikerental.payment",
 				Configuration::eventStore,
-				(c, b) -> b.workerExecutorService(workerExecutorService())
+				(c, b) -> b.workerExecutor(workerExecutorService())
 						   .batchSize(100)
 		);
 	}
