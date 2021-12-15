@@ -1,5 +1,6 @@
 package io.axoniq.demo.bikerental.rental.paymentsaga;
 
+import com.thoughtworks.xstream.XStream;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
 import org.axonframework.common.transaction.TransactionManager;
 import org.axonframework.config.Configuration;
@@ -15,7 +16,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
-import org.springframework.scripting.bsh.BshScriptUtils;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -42,11 +42,16 @@ public class RentalPaymentSagaApplication {
 	}
 
 	@Autowired
+	public void configureXStreamSecurity(XStream xStream) {
+		xStream.allowTypesByWildcard(new String[]{"io.axoniq.demo.bikerental.coreapi.**"});
+	}
+
+	@Autowired
 	public void configure(EventProcessingConfigurer eventProcessing) {
 		eventProcessing.registerPooledStreamingEventProcessor(
 				"PaymentSagaProcessor",
 				Configuration::eventStore,
-				(c, b) -> b.workerExecutorService(workerExecutorService())
+				(c, b) -> b.workerExecutor(workerExecutorService())
 						   .batchSize(100)
 						   .initialToken(StreamableMessageSource::createHeadToken)
 		);
@@ -54,7 +59,7 @@ public class RentalPaymentSagaApplication {
 		eventProcessing.registerPooledStreamingEventProcessor(
 				"io.axoniq.demo.bikerental.payment",
 				Configuration::eventStore,
-				(c, b) -> b.workerExecutorService(workerExecutorService())
+				(c, b) -> b.workerExecutor(workerExecutorService())
 						   .batchSize(100)
 		);
 	}
