@@ -8,64 +8,39 @@ import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
 import io.axoniq.demo.bikerental.coreapi.rental.RentalStatus;
 import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.queryhandling.QueryHandler;
-import org.axonframework.queryhandling.QueryUpdateEmitter;
 import org.springframework.stereotype.Component;
 
 @Component
 public class BikeStatusProjection {
 
     private final BikeStatusRepository bikeStatusRepository;
-    private final QueryUpdateEmitter updateEmitter;
 
-    public BikeStatusProjection(BikeStatusRepository bikeStatusRepository, QueryUpdateEmitter updateEmitter) {
+    public BikeStatusProjection(BikeStatusRepository bikeStatusRepository) {
         this.bikeStatusRepository = bikeStatusRepository;
-        this.updateEmitter = updateEmitter;
     }
 
     @EventHandler
     public void on(BikeRegisteredEvent event) {
         var bikeStatus = new BikeStatus(event.getBikeId(), event.getBikeType(), event.getLocation());
         bikeStatusRepository.save(bikeStatus);
-        updateEmitter.emit(q -> "findAll".equals(q.getQueryName()), bikeStatus);
     }
 
     @EventHandler
     public void on(BikeRequestedEvent event) {
         bikeStatusRepository.findById(event.getBikeId())
-                            .map(bs -> {
-                                bs.requestedBy(event.getRenter());
-                                return bs;
-                            })
-                            .ifPresent(bs -> {
-                                updateEmitter.emit(q -> "findAll".equals(q.getQueryName()), bs);
-                                updateEmitter.emit(String.class, event.getBikeId()::equals, bs);
-                            });
+                            .ifPresent(bs -> bs.requestedBy(event.getRenter()));
     }
 
     @EventHandler
     public void on(BikeInUseEvent event) {
         bikeStatusRepository.findById(event.getBikeId())
-                            .map(bs -> {
-                                bs.rentedBy(event.getRenter());
-                                return bs;
-                            })
-                            .ifPresent(bs -> {
-                                updateEmitter.emit(q -> "findAll".equals(q.getQueryName()), bs);
-                                updateEmitter.emit(String.class, event.getBikeId()::equals, bs);
-                            });
+                            .ifPresent(bs -> bs.rentedBy(event.getRenter()));
     }
 
     @EventHandler
     public void on(BikeReturnedEvent event) {
         bikeStatusRepository.findById(event.getBikeId())
-                            .map(bs -> {
-                                bs.returnedAt(event.getLocation());
-                                return bs;
-                            })
-                            .ifPresent(bs -> {
-                                updateEmitter.emit(q -> "findAll".equals(q.getQueryName()), bs);
-                                updateEmitter.emit(String.class, event.getBikeId()::equals, bs);
-                            });
+                            .ifPresent(bs -> bs.returnedAt(event.getLocation()));
 
     }
 
