@@ -44,6 +44,16 @@ Accept: application/json
 
 # GENERATE RENTALS
 
+POST {{hostname}}/rentPayReturn?bikeId=a28f942e-e777-4bed-9408-8a111b452fb8
+Accept: text/plain
+
+###
+
+POST {{hostname}}/generateRentals?bikeType=city
+Accept: text/plain
+
+###
+
 POST {{hostname}}/generateRentals?bikeType=city&loops=30&concurrency=10
 Accept: text/plain
 

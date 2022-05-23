@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -82,8 +83,9 @@ public class RentalController {
     }
 
     @PostMapping("/requestBike")
-    public CompletableFuture<String> requestBike(@RequestParam("bikeId") String bikeId) {
-        return commandGateway.send(new RequestBikeCommand(bikeId, randomRenter()));
+    public CompletableFuture<String> requestBike(@RequestParam("bikeId") String bikeId,
+                                                 @RequestParam(value = "renter", required = false) String renter) {
+        return commandGateway.send(new RequestBikeCommand(bikeId, renter == null ? randomRenter() : renter));
     }
 
     @PostMapping("/returnBike")
@@ -96,7 +98,8 @@ public class RentalController {
         SubscriptionQueryResult<String, String> queryResult = queryGateway.subscriptionQuery("getPaymentId", paymentRef, String.class, String.class);
         return queryResult.initialResult().concatWith(queryResult.updates())
                           .filter(Objects::nonNull)
-                          .next();
+                          .next()
+                .timeout(Duration.ofSeconds(5), Mono.just("No payment found for given rental reference"));
 
     }
 
@@ -109,7 +112,6 @@ public class RentalController {
     public CompletableFuture<Void> acceptPayment(@RequestParam("id") String paymentId) {
         return commandGateway.send(new ConfirmPaymentCommand(paymentId));
     }
-
 
     @GetMapping(value = "watch", produces = "text/event-stream")
     public Flux<String> watchAll() {
@@ -129,11 +131,16 @@ public class RentalController {
     }
 
 
-    @PostMapping(value = "/generateRentals")
-    public Flux<String> generateData(@RequestParam(value = "bikeType") String bikeType,
-                                     @RequestParam("loops") int loops,
-                                     @RequestParam(value = "concurrency", defaultValue = "1") int concurrency) {
+    @PostMapping(value = "/rentPayReturn")
+    public Mono<String> generateData(@RequestParam(value = "bikeId") String bikeId,
+                                     @RequestParam(value = "renter", defaultValue = "John Doe") String renter) {
+        return Mono.fromFuture(() -> rentPayAndReturn(renter, bikeId));
+    }
 
+    @PostMapping(value = "/generateRentals")
+    public Flux<String> generateData(@RequestParam(value = "bikeType", defaultValue = "city") String bikeType,
+                                     @RequestParam(value = "loops", defaultValue = "1") int loops,
+                                     @RequestParam(value = "concurrency", defaultValue = "1") int concurrency) {
         return Flux.range(0, loops)
                    .flatMap(j -> executeRentalCycle(bikeType, randomRenter()).map(r -> "OK - Rented, Payed and Returned\n")
                                                                              .onErrorResume(e -> Mono.just("Not ok: " + e.getMessage() + "\n")),
@@ -147,12 +154,16 @@ public class RentalController {
 
     private Mono<String> executeRentalCycle(String bikeType, String renter) {
         CompletableFuture<String> result = selectRandomAvailableBike(bikeType)
-                .thenCompose(bikeId -> commandGateway.send(new RequestBikeCommand(bikeId, renter))
-                                                     .thenCompose(paymentRef -> executePayment(bikeId, (String) paymentRef))
-                                                     .thenCompose(r -> whenBikeUnlocked(bikeId))
-                                                     .thenCompose(r -> commandGateway.send(new ReturnBikeCommand(bikeId, randomLocation())))
-                                                     .thenApply(r -> bikeId));
+                .thenComposeAsync(bikeId -> rentPayAndReturn(renter, bikeId));
         return Mono.fromFuture(result);
+    }
+
+    private CompletableFuture<String> rentPayAndReturn(String renter, String bikeId) {
+        return commandGateway.send(new RequestBikeCommand(bikeId, renter))
+                             .thenComposeAsync(paymentRef -> executePayment(bikeId, (String) paymentRef))
+                             .thenComposeAsync(r -> whenBikeUnlocked(bikeId))
+                             .thenComposeAsync(r -> commandGateway.send(new ReturnBikeCommand(bikeId, randomLocation())))
+                             .thenApply(r -> bikeId);
     }
 
     private CompletableFuture<String> selectRandomAvailableBike(String bikeType) {

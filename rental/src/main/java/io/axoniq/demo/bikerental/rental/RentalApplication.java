@@ -1,7 +1,10 @@
 package io.axoniq.demo.bikerental.rental;
 
 import com.thoughtworks.xstream.XStream;
+import io.axoniq.demo.bikerental.coreapi.payment.PaymentStatus;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
+import org.axonframework.common.caching.Cache;
+import org.axonframework.common.caching.WeakReferenceCache;
 import org.axonframework.common.transaction.TransactionManager;
 import org.axonframework.config.Configuration;
 import org.axonframework.config.ConfigurationScopeAwareProvider;
@@ -20,7 +23,7 @@ import org.springframework.context.annotation.Bean;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-@EntityScan(basePackageClasses = {BikeStatus.class, SagaEntry.class, TokenEntry.class})
+@EntityScan(basePackageClasses = {BikeStatus.class, SagaEntry.class, TokenEntry.class, PaymentStatus.class})
 @SpringBootApplication
 public class RentalApplication {
 
@@ -63,6 +66,17 @@ public class RentalApplication {
                            .batchSize(100)
 
         );
+        eventProcessing.registerPooledStreamingEventProcessor(
+                "io.axoniq.demo.bikerental.rental.payment",
+                Configuration::eventStore,
+                (c, b) -> b.workerExecutor(workerExecutorService())
+                           .batchSize(100)
+        );
+    }
+
+    @Bean
+    public Cache bikeCache() {
+        return new WeakReferenceCache();
     }
 
 }
