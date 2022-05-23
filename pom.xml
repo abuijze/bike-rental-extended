@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.6.3</version>
+		<version>2.6.7</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>io.axoniq.demo.bikerental</groupId>
@@ -16,20 +16,15 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>payment</module>
 		<module>rental</module>
 		<module>core-api</module>
-        <module>microservices/rental-ui</module>
-		<module>microservices/rental-command</module>
-		<module>microservices/rental-query</module>
-		<module>microservices/rental-payment</module>
 	</modules>
 
 	<properties>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
 		<java.version>11</java.version>
-		<axon.version>4.5.8</axon.version>
+		<axon.version>4.5.9</axon.version>
 	</properties>
 
 	<dependencies>
