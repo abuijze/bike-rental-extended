@@ -33,8 +33,9 @@ import java.util.concurrent.ThreadLocalRandom;
 public class RentalController {
 
     private static final List<String> RENTERS = Arrays.asList("Allard", "Steven", "Josh", "David", "Marc", "Sara", "Milan", "Jeroen", "Marina", "Jeannot");
-    private static final List<String> LOCATIONS = Arrays.asList("Amsterdam", "Paris", "Vilnius", "Barcelona", "London", "New York", "Toronto", "Berlin", "Milan", "Rome", "Belgrade");
+    private static final List<String> LOCATIONS = Arrays.asList("Sagrada Família", "Barri Gòtic", "Casa Milà", "La Rambla", "Playa de Bogatell", "Palau de la Música Catalana", "Catedral de la Santa Cruz y Santa Eulalia", "Parc Güell", "Palau de Congressos", "Font Màgica de Montjuïc");
     public static final String FIND_ALL_QUERY = "findAll";
+    public static final String FIND_AVAILABLE = "findAvailable";
     public static final String FIND_ONE_QUERY = "findOne";
     private final CommandGateway commandGateway;
     private final QueryGateway queryGateway;
@@ -58,6 +59,20 @@ public class RentalController {
     @GetMapping("/bikes")
     public CompletableFuture<List<BikeStatus>> findAll() {
         return queryGateway.query(FIND_ALL_QUERY, null, ResponseTypes.multipleInstancesOf(BikeStatus.class));
+    }
+
+    @GetMapping("/availableBikes")
+    public CompletableFuture<List<BikeStatus>> findAvailable(@RequestParam(value = "bikeType", defaultValue = "city") String bikeType) {
+        return queryGateway.query(FIND_AVAILABLE, bikeType, ResponseTypes.multipleInstancesOf(BikeStatus.class));
+    }
+
+    @GetMapping("/availableBikeLocations")
+    public Mono<List<String>> findAvailableLocations(@RequestParam(value = "bikeType", defaultValue = "city") String bikeType) {
+        return Mono.fromFuture(() -> queryGateway.query(FIND_AVAILABLE, bikeType, ResponseTypes.multipleInstancesOf(BikeStatus.class)))
+                   .flatMapMany(Flux::fromIterable)
+                   .map(BikeStatus::getLocation)
+                   .distinct()
+                   .collectList();
     }
 
     @PostMapping("/requestBike")
@@ -126,7 +141,7 @@ public class RentalController {
     }
 
     private CompletableFuture<String> selectRandomAvailableBike(String bikeType) {
-        return queryGateway.query("findAvailable", bikeType, ResponseTypes.multipleInstancesOf(BikeStatus.class))
+        return queryGateway.query(FIND_AVAILABLE, bikeType, ResponseTypes.multipleInstancesOf(BikeStatus.class))
                            .thenApply(this::pickRandom)
                            .thenApply(BikeStatus::getBikeId);
     }
