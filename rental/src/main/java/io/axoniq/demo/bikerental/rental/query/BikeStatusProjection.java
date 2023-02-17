@@ -6,6 +6,7 @@ import io.axoniq.demo.bikerental.coreapi.rental.BikeRequestedEvent;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeReturnedEvent;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
 import io.axoniq.demo.bikerental.coreapi.rental.RentalStatus;
+import io.axoniq.demo.bikerental.coreapi.rental.RequestRejectedEvent;
 import org.axonframework.eventhandling.EventHandler;
 import org.axonframework.queryhandling.QueryHandler;
 import org.axonframework.queryhandling.QueryUpdateEmitter;
@@ -67,6 +68,19 @@ public class BikeStatusProjection {
                                 updateEmitter.emit(String.class, event.getBikeId()::equals, bs);
                             });
 
+    }
+
+    @EventHandler
+    public void on(RequestRejectedEvent event) {
+        bikeStatusRepository.findById(event.getBikeId())
+                            .map(bs -> {
+                                bs.returnedAt(bs.getLocation());
+                                return bs;
+                            })
+                            .ifPresent(bs -> {
+                                updateEmitter.emit(q -> "findAll".equals(q.getQueryName()), bs);
+                                updateEmitter.emit(String.class, event.getBikeId()::equals, bs);
+                            });
     }
 
     @QueryHandler(queryName = "findAll")

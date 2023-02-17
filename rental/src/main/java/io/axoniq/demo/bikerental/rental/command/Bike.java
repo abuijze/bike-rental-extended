@@ -51,7 +51,6 @@ public class Bike {
 
     @CommandHandler
     public void handle(ApproveRequestCommand command) {
-        // TODO - Validate that user has reserved this bike
         if (!Objects.equals(reservedBy, command.getRenter())
                 || reservationConfirmed) {
             return ;
@@ -61,7 +60,6 @@ public class Bike {
 
     @CommandHandler
     public void handle(RejectRequestCommand command) {
-        // TODO - Validate that user has reserved this bike
         if (!Objects.equals(reservedBy, command.getRenter())
                 || reservationConfirmed) {
             return;
@@ -95,6 +93,13 @@ public class Bike {
         this.reservedBy = event.getRenter();
         this.reservationConfirmed = false;
         this.isAvailable = false;
+    }
+
+    @EventSourcingHandler
+    protected void handle(RequestRejectedEvent event) {
+        this.reservedBy = null;
+        this.reservationConfirmed = false;
+        this.isAvailable = true;
     }
 
     @EventSourcingHandler

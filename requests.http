@@ -1,50 +1,60 @@
 # First, generate some bikes
-POST {{hostname}}/?bikes=20&bikeType=city
+POST {{rental}}/?bikes=20&bikeType=city
 Accept: application/json
 
 ###
 
 # Show available bikes
-GET {{hostname}}/bikes
+GET {{rental}}/bikes
 Accept: application/json
 
 ###
 
 # Show bike status
-GET {{hostname}}/bikes/bc3a2bf1-120a-4b3f-84a9-9a8b67a73624
+GET {{rental}}/bikes/40208d8f-f338-4ba3-835e-b5026e6bde3e
 Accept: application/json
 
 ###
 
 # Request one of the available bikes
-POST {{hostname}}/requestBike?bikeId=1972f57a-babe-44a7-b5dd-1a1333da521b
-Accept: application/json
-
-###
-GET {{hostname}}/findPayment?reference=95496b07-1e9f-4639-8ff3-29b1c58cd89a
+POST {{rental}}/requestBike?bikeId=ca78f8d5-86a6-4822-9db1-c757360ce8ce
 Accept: application/json
 
 ###
 
-POST {{hostname}}/acceptPayment?id=7c38518b-3c4e-4b4b-9172-c4bef65ff3b0
+# Find the payment for a specific payment reference
+GET {{payment}}/findPayment?reference=ef6fdaa6-9be3-45a0-ab86-efcde226aea7
 Accept: application/json
 
 ###
 
-GET {{hostname}}/bikes/91480d9a-20e3-43a7-a88f-8712365a4f4c
+# Accept a payment
+POST {{payment}}/acceptPayment?id=c5394643-cde7-4059-abf9-1d9c1389ad53
 Accept: application/json
 
 ###
 
-# Return one of the available bikes
-POST {{hostname}}/returnBike?bikeId=8e648607-6294-44aa-a71a-b7a2b0dae6e2
+# Reject a payment
+POST {{payment}}/rejectPayment?id=d8be5441-2fde-4bc4-b784-f375734509f9
+Accept: application/json
+
+###
+
+# Show bike status
+GET {{rental}}/bikes/91480d9a-20e3-43a7-a88f-8712365a4f4c
+Accept: application/json
+
+###
+
+# Return a bike
+POST {{rental}}/returnBike?bikeId=40208d8f-f338-4ba3-835e-b5026e6bde3e
 Accept: application/json
 
 ###
 
 # GENERATE RENTALS
 
-POST {{hostname}}/generateRentals?bikeType=city&loops=30&concurrency=10
+POST {{rental}}/generateRentals?bikeType=city&loops=30&concurrency=10
 Accept: text/plain
 
 ###
