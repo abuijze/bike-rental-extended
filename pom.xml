@@ -43,6 +43,11 @@
 			<version>${axon.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>io.axoniq.inspector</groupId>
+			<artifactId>inspector-axon-spring-boot-starter</artifactId>
+			<version>0.1.5</version>
+		</dependency>
+		<dependency>
 			<groupId>org.axonframework</groupId>
 			<artifactId>axon-micrometer</artifactId>
 			<version>${axon.version}</version>
