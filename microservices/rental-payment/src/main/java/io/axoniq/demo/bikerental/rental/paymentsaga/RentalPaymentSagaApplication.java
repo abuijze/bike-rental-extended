@@ -1,5 +1,6 @@
 package io.axoniq.demo.bikerental.rental.paymentsaga;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thoughtworks.xstream.XStream;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
 import org.axonframework.common.transaction.TransactionManager;
@@ -41,10 +42,11 @@ public class RentalPaymentSagaApplication {
 		return Executors.newScheduledThreadPool(2);
 	}
 
-	@Autowired
-	public void configureXStreamSecurity(XStream xStream) {
-		xStream.allowTypesByWildcard(new String[]{"io.axoniq.demo.bikerental.coreapi.**"});
-	}
+    @Autowired
+    public void configureSerializers(XStream xStream, ObjectMapper objectMapper) {
+        xStream.allowTypesByWildcard(new String[]{"io.axoniq.demo.bikerental.coreapi.**"});
+        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.NON_CONCRETE_AND_ARRAYS);
+    }
 
 	@Autowired
 	public void configure(EventProcessingConfigurer eventProcessing) {

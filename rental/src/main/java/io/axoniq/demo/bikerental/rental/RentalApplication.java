@@ -1,5 +1,6 @@
 package io.axoniq.demo.bikerental.rental;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thoughtworks.xstream.XStream;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
 import org.axonframework.common.transaction.TransactionManager;
@@ -43,8 +44,9 @@ public class RentalApplication {
     }
 
     @Autowired
-    public void configureXStreamSecurity(XStream xStream) {
+    public void configureXStreamSecurity(XStream xStream, ObjectMapper objectMapper) {
         xStream.allowTypesByWildcard(new String[]{"io.axoniq.demo.bikerental.coreapi.**"});
+        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.NON_CONCRETE_AND_ARRAYS);
     }
 
     @Autowired
