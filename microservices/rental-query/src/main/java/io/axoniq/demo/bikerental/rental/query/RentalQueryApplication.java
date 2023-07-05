@@ -3,7 +3,7 @@ package io.axoniq.demo.bikerental.rental.query;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thoughtworks.xstream.XStream;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
-import org.axonframework.config.EventProcessingConfigurer;
+import org.axonframework.config.ConfigurerModule;
 import org.axonframework.eventhandling.tokenstore.jpa.TokenEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -18,14 +18,14 @@ import java.util.concurrent.ScheduledExecutorService;
 @SpringBootApplication
 public class RentalQueryApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(RentalQueryApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(RentalQueryApplication.class, args);
+    }
 
-	@Bean(destroyMethod = "shutdown")
-	public ScheduledExecutorService workerExecutorService() {
-		return Executors.newScheduledThreadPool(2);
-	}
+    @Bean(destroyMethod = "shutdown")
+    public ScheduledExecutorService workerExecutorService() {
+        return Executors.newScheduledThreadPool(2);
+    }
 
     @Autowired
     public void configureXStreamSecurity(XStream xStream, ObjectMapper objectMapper) {
@@ -33,11 +33,14 @@ public class RentalQueryApplication {
         objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.NON_CONCRETE_AND_ARRAYS);
     }
 
-	@Autowired
-	public void configure(EventProcessingConfigurer eventProcessing) {
-		eventProcessing.usingPooledStreamingEventProcessors()
-					   .registerPooledStreamingEventProcessorConfiguration(
-							   (c, b) -> b.workerExecutorService(workerExecutorService())
-					   );
-	}
+    @Bean
+    public ConfigurerModule eventProcessingCustomizer() {
+        return configurer -> configurer
+                .eventProcessing()
+                .usingPooledStreamingEventProcessors()
+                .registerPooledStreamingEventProcessorConfiguration(
+                        (c, b) -> b.workerExecutor(workerExecutorService())
+                );
+    }
+
 }

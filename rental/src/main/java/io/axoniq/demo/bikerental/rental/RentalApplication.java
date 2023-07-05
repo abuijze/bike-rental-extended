@@ -6,7 +6,7 @@ import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
 import org.axonframework.common.transaction.TransactionManager;
 import org.axonframework.config.Configuration;
 import org.axonframework.config.ConfigurationScopeAwareProvider;
-import org.axonframework.config.EventProcessingConfigurer;
+import org.axonframework.config.ConfigurerModule;
 import org.axonframework.deadline.DeadlineManager;
 import org.axonframework.deadline.SimpleDeadlineManager;
 import org.axonframework.eventhandling.tokenstore.jpa.TokenEntry;
@@ -49,22 +49,24 @@ public class RentalApplication {
         objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.NON_CONCRETE_AND_ARRAYS);
     }
 
-    @Autowired
-    public void configure(EventProcessingConfigurer eventProcessing) {
-        eventProcessing.registerPooledStreamingEventProcessor(
-                "PaymentSagaProcessor",
-                Configuration::eventStore,
-                (c, b) -> b.workerExecutor(workerExecutorService())
-                           .batchSize(100)
-                           .initialToken(StreamableMessageSource::createHeadToken)
-        );
-        eventProcessing.registerPooledStreamingEventProcessor(
-                "io.axoniq.demo.bikerental.rental.query",
-                Configuration::eventStore,
-                (c, b) -> b.workerExecutor(workerExecutorService())
-                           .batchSize(100)
-
-        );
+    @Bean
+    public ConfigurerModule eventProcessingCustomizer() {
+        return configurer -> configurer
+                .eventProcessing()
+                .registerPooledStreamingEventProcessor(
+                        "PaymentSagaProcessor",
+                        Configuration::eventStore,
+                        (c, b) -> b.workerExecutor(workerExecutorService())
+                                .initialSegmentCount(2)
+                                   .batchSize(100)
+                                   .initialToken(StreamableMessageSource::createHeadToken)
+                )
+                .registerPooledStreamingEventProcessor(
+                        "io.axoniq.demo.bikerental.rental.query",
+                        Configuration::eventStore,
+                        (c, b) -> b.workerExecutor(workerExecutorService())
+                                   .batchSize(100)
+                );
     }
 
 }

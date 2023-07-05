@@ -6,7 +6,7 @@ import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
 import org.axonframework.common.transaction.TransactionManager;
 import org.axonframework.config.Configuration;
 import org.axonframework.config.ConfigurationScopeAwareProvider;
-import org.axonframework.config.EventProcessingConfigurer;
+import org.axonframework.config.ConfigurerModule;
 import org.axonframework.deadline.DeadlineManager;
 import org.axonframework.deadline.SimpleDeadlineManager;
 import org.axonframework.eventhandling.tokenstore.jpa.TokenEntry;
@@ -25,22 +25,23 @@ import java.util.concurrent.ScheduledExecutorService;
 @SpringBootApplication
 public class RentalPaymentSagaApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(RentalPaymentSagaApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(RentalPaymentSagaApplication.class, args);
+    }
 
-	@Bean
-	public DeadlineManager deadlineManager(TransactionManager transactionManager,
-										   Configuration config) {
-		return SimpleDeadlineManager.builder()
-									.transactionManager(transactionManager)
-									.scopeAwareProvider(new ConfigurationScopeAwareProvider(config))
-									.build();
-	}
-	@Bean(destroyMethod = "shutdown")
-	public ScheduledExecutorService workerExecutorService() {
-		return Executors.newScheduledThreadPool(2);
-	}
+    @Bean
+    public DeadlineManager deadlineManager(TransactionManager transactionManager,
+                                           Configuration config) {
+        return SimpleDeadlineManager.builder()
+                                    .transactionManager(transactionManager)
+                                    .scopeAwareProvider(new ConfigurationScopeAwareProvider(config))
+                                    .build();
+    }
+
+    @Bean(destroyMethod = "shutdown")
+    public ScheduledExecutorService workerExecutorService() {
+        return Executors.newScheduledThreadPool(2);
+    }
 
     @Autowired
     public void configureSerializers(XStream xStream, ObjectMapper objectMapper) {
@@ -48,22 +49,23 @@ public class RentalPaymentSagaApplication {
         objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.NON_CONCRETE_AND_ARRAYS);
     }
 
-	@Autowired
-	public void configure(EventProcessingConfigurer eventProcessing) {
-		eventProcessing.registerPooledStreamingEventProcessor(
-				"PaymentSagaProcessor",
-				Configuration::eventStore,
-				(c, b) -> b.workerExecutor(workerExecutorService())
-						   .batchSize(100)
-						   .initialToken(StreamableMessageSource::createHeadToken)
-		);
-
-		eventProcessing.registerPooledStreamingEventProcessor(
-				"io.axoniq.demo.bikerental.payment",
-				Configuration::eventStore,
-				(c, b) -> b.workerExecutor(workerExecutorService())
-						   .batchSize(100)
-		);
-	}
+    @Bean
+    public ConfigurerModule eventProcessingCustomizer() {
+        return configurer -> configurer
+                .eventProcessing()
+                .registerPooledStreamingEventProcessor(
+                        "PaymentSagaProcessor",
+                        Configuration::eventStore,
+                        (c, b) -> b.workerExecutor(workerExecutorService())
+                                   .batchSize(100)
+                                   .initialToken(StreamableMessageSource::createHeadToken)
+                )
+                .registerPooledStreamingEventProcessor(
+                        "io.axoniq.demo.bikerental.payment",
+                        Configuration::eventStore,
+                        (c, b) -> b.workerExecutor(workerExecutorService())
+                                   .batchSize(100)
+                );
+    }
 
 }
