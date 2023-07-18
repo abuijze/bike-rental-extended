@@ -29,7 +29,7 @@ public class RentalPaymentSagaApplication {
         SpringApplication.run(RentalPaymentSagaApplication.class, args);
     }
 
-    @Bean
+    @Bean(destroyMethod = "")
     public DeadlineManager deadlineManager(TransactionManager transactionManager,
                                            Configuration config) {
         return SimpleDeadlineManager.builder()
