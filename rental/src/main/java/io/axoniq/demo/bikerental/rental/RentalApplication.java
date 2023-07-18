@@ -1,7 +1,8 @@
 package io.axoniq.demo.bikerental.rental;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.module.kotlin.KotlinModule;
+import io.axoniq.demo.bikerental.coreapi.payment.PreparePaymentCommand;
+import io.axoniq.demo.bikerental.coreapi.payment.RejectPaymentCommand;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
 import jakarta.persistence.EntityManager;
 import org.axonframework.commandhandling.gateway.CommandGateway;
@@ -18,6 +19,7 @@ import org.axonframework.messaging.StreamableMessageSource;
 import org.axonframework.modelling.saga.ResourceInjector;
 import org.axonframework.modelling.saga.SimpleResourceInjector;
 import org.axonframework.modelling.saga.repository.jpa.SagaEntry;
+import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -31,6 +33,7 @@ import java.util.concurrent.ScheduledExecutorService;
 @EntityScan(basePackageClasses = {BikeStatus.class, SagaEntry.class, TokenEntry.class})
 @SpringBootApplication
 @ImportRuntimeHints(CustomRuntimeHints.class)
+@RegisterReflectionForBinding({RejectPaymentCommand.class, PreparePaymentCommand.class})
 public class RentalApplication {
 
     public static void main(String[] args) {
