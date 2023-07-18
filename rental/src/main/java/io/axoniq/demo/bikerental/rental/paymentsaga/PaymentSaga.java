@@ -1,5 +1,7 @@
 package io.axoniq.demo.bikerental.rental.paymentsaga;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIncludeProperties;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentConfirmedEvent;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentPreparedEvent;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentRejectedEvent;
@@ -34,6 +36,15 @@ public class PaymentSaga {
 
     private String bikeId;
     private String renter;
+
+    @JsonCreator
+    public PaymentSaga(String bikeId, String renter) {
+        this.bikeId = bikeId;
+        this.renter = renter;
+    }
+
+    public PaymentSaga() {
+    }
 
     @StartSaga
     @SagaEventHandler(associationProperty = "bikeId")
@@ -81,6 +92,14 @@ public class PaymentSaga {
                               deadlineManager.schedule(Duration.ofSeconds(5), "retryPayment", rentalReference, scope);
                           }
                       });
+    }
+
+    public String getBikeId() {
+        return bikeId;
+    }
+
+    public String getRenter() {
+        return renter;
     }
 
 }
