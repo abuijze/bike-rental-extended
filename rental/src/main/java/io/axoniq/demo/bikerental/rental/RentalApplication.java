@@ -1,6 +1,7 @@
 package io.axoniq.demo.bikerental.rental;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.axoniq.demo.bikerental.coreapi.payment.ConfirmPaymentCommand;
 import io.axoniq.demo.bikerental.coreapi.payment.PreparePaymentCommand;
 import io.axoniq.demo.bikerental.coreapi.payment.RejectPaymentCommand;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
@@ -33,7 +34,7 @@ import java.util.concurrent.ScheduledExecutorService;
 @EntityScan(basePackageClasses = {BikeStatus.class, SagaEntry.class, TokenEntry.class})
 @SpringBootApplication
 @ImportRuntimeHints(CustomRuntimeHints.class)
-@RegisterReflectionForBinding({RejectPaymentCommand.class, PreparePaymentCommand.class})
+@RegisterReflectionForBinding({RejectPaymentCommand.class, PreparePaymentCommand.class, ConfirmPaymentCommand.class})
 public class RentalApplication {
 
     public static void main(String[] args) {
