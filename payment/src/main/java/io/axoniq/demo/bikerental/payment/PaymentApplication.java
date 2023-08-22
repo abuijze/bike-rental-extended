@@ -31,7 +31,7 @@ public class PaymentApplication {
 	@Autowired
 	public void configureSerializers(XStream xStream, ObjectMapper objectMapper) {
 		xStream.allowTypesByWildcard(new String[]{"io.axoniq.demo.bikerental.coreapi.**"});
-		objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.NON_CONCRETE_AND_ARRAYS);
+		objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);
 	}
 
 	@Autowired

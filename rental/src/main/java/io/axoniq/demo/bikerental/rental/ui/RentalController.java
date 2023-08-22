@@ -19,8 +19,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -32,10 +34,10 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequestMapping("/")
 public class RentalController {
 
-    private static final List<String> RENTERS = Arrays.asList("Allard", "Steven", "Josh", "David", "Marc", "Sara", "Milan", "Jeroen", "Marina", "Jeannot");
-    private static final List<String> LOCATIONS = Arrays.asList("Amsterdam", "Paris", "Vilnius", "Barcelona", "London", "New York", "Toronto", "Berlin", "Milan", "Rome", "Belgrade");
     public static final String FIND_ALL_QUERY = "findAll";
     public static final String FIND_ONE_QUERY = "findOne";
+    private static final List<String> RENTERS = Arrays.asList("Allard", "Steven", "Josh", "David", "Marc", "Sara", "Milan", "Jeroen", "Marina", "Jeannot");
+    private static final List<String> LOCATIONS = Arrays.asList("Amsterdam", "Paris", "Vilnius", "Barcelona", "London", "New York", "Toronto", "Berlin", "Milan", "Rome", "Belgrade");
     private final CommandGateway commandGateway;
     private final QueryGateway queryGateway;
 
@@ -132,11 +134,13 @@ public class RentalController {
     @PostMapping(value = "/generateRentals")
     public Flux<String> generateData(@RequestParam(value = "bikeType") String bikeType,
                                      @RequestParam("loops") int loops,
-                                     @RequestParam(value = "concurrency", defaultValue = "1") int concurrency) {
+                                     @RequestParam(value = "concurrency", defaultValue = "1") int concurrency,
+                                     @RequestParam(value = "abandonPaymentFactor", defaultValue = "100") int abandonPaymentFactor) {
 
         return Flux.range(0, loops)
-                   .flatMap(j -> executeRentalCycle(bikeType, randomRenter()).map(r -> "OK - Rented, Payed and Returned\n")
-                                                                             .onErrorResume(e -> Mono.just("Not ok: " + e.getMessage() + "\n")),
+                   .flatMap(j -> executeRentalCycle(bikeType, randomRenter(), abandonPaymentFactor)
+                                    .map(r -> "OK - Rented, Payed and Returned\n")
+                                    .onErrorResume(e -> Mono.just("Not ok: " + e.getMessage() + "\n")),
                             concurrency);
     }
 
@@ -145,10 +149,10 @@ public class RentalController {
         return queryGateway.query(FIND_ONE_QUERY, bikeId, BikeStatus.class);
     }
 
-    private Mono<String> executeRentalCycle(String bikeType, String renter) {
+    private Mono<String> executeRentalCycle(String bikeType, String renter, int abandonPaymentFactor) {
         CompletableFuture<String> result = selectRandomAvailableBike(bikeType)
                 .thenCompose(bikeId -> commandGateway.send(new RequestBikeCommand(bikeId, renter))
-                                                     .thenCompose(paymentRef -> executePayment(bikeId, (String) paymentRef))
+                                                     .thenCompose(paymentRef -> executePayment(bikeId, (String) paymentRef, abandonPaymentFactor))
                                                      .thenCompose(r -> whenBikeUnlocked(bikeId))
                                                      .thenCompose(r -> commandGateway.send(new ReturnBikeCommand(bikeId, randomLocation())))
                                                      .thenApply(r -> bikeId));
@@ -174,7 +178,10 @@ public class RentalController {
                           .toFuture();
     }
 
-    private CompletableFuture<String> executePayment(String bikeId, String paymentRef) {
+    private CompletableFuture<String> executePayment(String bikeId, String paymentRef, int abandonPaymentFactor) {
+        if (ThreadLocalRandom.current().nextInt(abandonPaymentFactor) == 0) {
+            return CompletableFuture.failedFuture(new IllegalStateException("Customer refused to pay"));
+        }
         SubscriptionQueryResult<String, String> queryResult = queryGateway.subscriptionQuery("getPaymentId", paymentRef, String.class, String.class);
         return queryResult.initialResult().concatWith(queryResult.updates())
                           .filter(Objects::nonNull)
