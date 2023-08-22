@@ -1,5 +1,6 @@
 package io.axoniq.demo.bikerental.rental.ui;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thoughtworks.xstream.XStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -13,8 +14,9 @@ public class UserInterfaceApplication {
 	}
 
 	@Autowired
-	public void configureXStreamSecurity(XStream xStream) {
+	public void configureXStreamSecurity(XStream xStream, ObjectMapper objectMapper) {
 		xStream.allowTypesByWildcard(new String[]{"io.axoniq.demo.bikerental.coreapi.**"});
+		objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);
 	}
 
 }
