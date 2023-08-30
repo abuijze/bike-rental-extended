@@ -8,6 +8,10 @@ import org.axonframework.common.jpa.SimpleEntityManagerProvider;
 import org.axonframework.config.Configuration;
 import org.axonframework.config.ConfigurerModule;
 import org.axonframework.eventhandling.tokenstore.jpa.TokenEntry;
+import org.springframework.aot.hint.MemberCategory;
+import org.springframework.aot.hint.RuntimeHints;
+import org.springframework.aot.hint.RuntimeHintsRegistrar;
+import org.springframework.aot.hint.TypeReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -20,7 +24,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 @EntityScan(basePackageClasses = {PaymentStatus.class, TokenEntry.class})
 @SpringBootApplication
-@ImportRuntimeHints(CustomRuntimeHints.class)
+@ImportRuntimeHints(PaymentApplication.CustomRuntimeHints.class)
 public class PaymentApplication {
 
     public static void main(String[] args) {
@@ -54,4 +58,22 @@ public class PaymentApplication {
                 );
     }
 
+    public static class CustomRuntimeHints implements RuntimeHintsRegistrar {
+        @Override
+        public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+            hints.proxies().registerJdkProxy(TypeReference.of("org.hibernate.query.hql.spi.SqmQueryImplementor"),
+                                             TypeReference.of("org.hibernate.query.sqm.internal.SqmInterpretationsKey$InterpretationsKeySource"),
+                                             TypeReference.of("org.hibernate.query.spi.DomainQueryExecutionContext"),
+                                             TypeReference.of("org.hibernate.query.SelectionQuery"),
+                                             TypeReference.of("org.hibernate.query.CommonQueryContract"));
+            hints.reflection()
+                 .registerType(org.h2.server.TcpServer.class,
+                               MemberCategory.PUBLIC_CLASSES,
+                               MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
+                               MemberCategory.INVOKE_DECLARED_METHODS,
+                               MemberCategory.INTROSPECT_DECLARED_METHODS,
+                               MemberCategory.INTROSPECT_DECLARED_CONSTRUCTORS);
+
+        }
+    }
 }
