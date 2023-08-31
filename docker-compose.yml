@@ -1,0 +1,32 @@
+services:
+  axonserver:
+    image: "axoniq/axonserver"
+    hostname: axonserver
+    ports:
+      - 8024
+      - 8124
+    environment:
+      AXONIQ_AXONSERVER_STANDALONE: true
+      AXONIQ_AXONSERVER_DEVMODE_ENABLED: true
+    networks:
+      - rental_network
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - 5432
+    environment:
+      - 'POSTGRES_PASSWORD=example'
+      - 'POSTGRES_DB=rental'
+    networks:
+      - rental_network
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8088:8080
+    networks:
+      - rental_network
+
+networks:
+  rental_network:

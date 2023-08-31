@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.1.2</version>
+		<version>3.1.3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>io.axoniq.demo.bikerental</groupId>
@@ -29,7 +29,7 @@
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 		<java.version>17</java.version>
-		<axon.version>4.8.0</axon.version>
+		<axon.version>4.9.0-SNAPSHOT</axon.version>
 	</properties>
 
 	<dependencies>
@@ -51,6 +51,16 @@
 			<groupId>org.axonframework.extensions.spring-aot</groupId>
 			<artifactId>axon-spring-aot</artifactId>
 			<version>${axon.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-docker-compose</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.axonframework</groupId>
