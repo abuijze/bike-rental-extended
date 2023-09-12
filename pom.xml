@@ -43,9 +43,9 @@
 			<version>${axon.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.axoniq.inspector</groupId>
-			<artifactId>inspector-axon-spring-boot-starter</artifactId>
-			<version>0.1.5</version>
+			<groupId>io.axoniq.console</groupId>
+			<artifactId>console-framework-client-spring-boot-starter</artifactId>
+			<version>0.2.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.axonframework.extensions.spring-aot</groupId>
@@ -98,5 +98,18 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>sonatype-snapshots</id>
+			<url> https://oss.sonatype.org/content/repositories/snapshots</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+		</repository>
+	</repositories>
 
 </project>

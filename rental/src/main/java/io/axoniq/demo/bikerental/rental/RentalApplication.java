@@ -5,21 +5,15 @@ import io.axoniq.demo.bikerental.coreapi.payment.ConfirmPaymentCommand;
 import io.axoniq.demo.bikerental.coreapi.payment.PreparePaymentCommand;
 import io.axoniq.demo.bikerental.coreapi.payment.RejectPaymentCommand;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
-import jakarta.persistence.EntityManager;
-import org.axonframework.commandhandling.gateway.CommandGateway;
-import org.axonframework.common.jpa.EntityManagerProvider;
-import org.axonframework.common.jpa.SimpleEntityManagerProvider;
 import org.axonframework.common.transaction.TransactionManager;
 import org.axonframework.config.Configuration;
 import org.axonframework.config.ConfigurationScopeAwareProvider;
 import org.axonframework.config.ConfigurerModule;
 import org.axonframework.deadline.DeadlineManager;
 import org.axonframework.deadline.SimpleDeadlineManager;
+import org.axonframework.eventhandling.deadletter.jpa.DeadLetterEntry;
 import org.axonframework.eventhandling.tokenstore.jpa.TokenEntry;
 import org.axonframework.messaging.StreamableMessageSource;
-import org.axonframework.modelling.saga.AbstractResourceInjector;
-import org.axonframework.modelling.saga.ResourceInjector;
-import org.axonframework.modelling.saga.SimpleResourceInjector;
 import org.axonframework.modelling.saga.repository.jpa.SagaEntry;
 import org.h2.server.TcpServer;
 import org.springframework.aot.hint.MemberCategory;
@@ -28,14 +22,12 @@ import org.springframework.aot.hint.RuntimeHintsRegistrar;
 import org.springframework.aot.hint.TypeReference;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportRuntimeHints;
 
-import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -61,21 +53,6 @@ public class RentalApplication {
     @Bean(destroyMethod = "shutdown")
     public ScheduledExecutorService workerExecutorService() {
         return Executors.newScheduledThreadPool(4);
-    }
-
-    @Bean
-    public ResourceInjector resourceInjector(AutowireCapableBeanFactory beanFactory) {
-        return new AbstractResourceInjector() {
-            @Override
-            protected <R> Optional<R> findResource(Class<R> requiredType) {
-                return Optional.ofNullable(beanFactory.getBeanProvider(requiredType).getIfAvailable());
-            }
-        };
-    }
-
-    @Bean
-    public EntityManagerProvider entityManagerProvider(EntityManager entityManager) {
-        return new SimpleEntityManagerProvider(entityManager);
     }
 
     @Autowired
@@ -107,6 +84,7 @@ public class RentalApplication {
     public static class CustomRuntimeHints implements RuntimeHintsRegistrar {
         @Override
         public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+            // TODO - can be removed as of Spring 6.0.12 - See https://github.com/spring-projects/spring-framework/issues/31050
             hints.proxies().registerJdkProxy(TypeReference.of("org.hibernate.query.hql.spi.SqmQueryImplementor"),
                                              TypeReference.of("org.hibernate.query.sqm.internal.SqmInterpretationsKey$InterpretationsKeySource"),
                                              TypeReference.of("org.hibernate.query.spi.DomainQueryExecutionContext"),

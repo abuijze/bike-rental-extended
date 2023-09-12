@@ -1,7 +1,7 @@
 package io.axoniq.demo.bikerental.rental;
 
 import org.axonframework.axonserver.connector.AxonServerConfiguration;
-import org.axonframework.springboot.connection.AxonServerConnectionDetails;
+import org.axonframework.springboot.service.connection.AxonServerConnectionDetails;
 import org.axonframework.test.server.AxonServerContainer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -13,7 +13,9 @@ import org.testcontainers.utility.DockerImageName;
 public class TestRentalApplication {
 
     public static void main(String[] args) {
-        SpringApplication.from(RentalApplication::main).with(TestRentalApplication.class).run(args);
+        SpringApplication.from(RentalApplication::main)
+                         .with(TestRentalApplication.class)
+                         .run(args);
     }
 
     @Bean
