@@ -80,7 +80,8 @@ public class RentalApplication {
 
     @Autowired
     public void configureSerializers(ObjectMapper objectMapper) {
-        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);
+        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(),
+                                           ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);
     }
 
     @Bean

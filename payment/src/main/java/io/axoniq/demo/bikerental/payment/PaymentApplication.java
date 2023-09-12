@@ -7,6 +7,7 @@ import org.axonframework.common.jpa.EntityManagerProvider;
 import org.axonframework.common.jpa.SimpleEntityManagerProvider;
 import org.axonframework.config.Configuration;
 import org.axonframework.config.ConfigurerModule;
+import org.axonframework.config.ConfigurerModule;
 import org.axonframework.eventhandling.tokenstore.jpa.TokenEntry;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
@@ -34,11 +35,6 @@ public class PaymentApplication {
     @Bean(destroyMethod = "shutdown")
     public ScheduledExecutorService workerExecutorService() {
         return Executors.newScheduledThreadPool(4);
-    }
-
-    @Bean
-    public EntityManagerProvider entityManagerProvider(EntityManager entityManager) {
-        return new SimpleEntityManagerProvider(entityManager);
     }
 
     @Autowired
