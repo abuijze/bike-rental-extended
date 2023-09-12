@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thoughtworks.xstream.XStream;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentStatus;
 import org.axonframework.config.Configuration;
+import org.axonframework.config.ConfigurerModule;
 import org.axonframework.config.EventProcessingConfigurer;
 import org.axonframework.eventhandling.tokenstore.jpa.TokenEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,25 +24,26 @@ public class PaymentApplication {
 		SpringApplication.run(PaymentApplication.class, args);
 	}
 
-	@Bean(destroyMethod = "shutdown")
-	public ScheduledExecutorService workerExecutorService() {
-		return Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors());
-	}
+    @Bean(destroyMethod = "shutdown")
+    public ScheduledExecutorService workerExecutorService() {
+        return Executors.newScheduledThreadPool(4);
+    }
 
-	@Autowired
-	public void configureSerializers(XStream xStream, ObjectMapper objectMapper) {
-		xStream.allowTypesByWildcard(new String[]{"io.axoniq.demo.bikerental.coreapi.**"});
-		objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);
-	}
+    @Autowired
+    public void configureSerializers(ObjectMapper objectMapper) {
+        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);
+    }
 
-	@Autowired
-	public void configure(EventProcessingConfigurer config) {
-		config.registerPooledStreamingEventProcessor(
-				"io.axoniq.demo.bikerental.payment",
-				Configuration::eventStore,
-				(c, b) -> b.workerExecutor(workerExecutorService())
-						   .batchSize(100)
-		);
-	}
+    @Bean
+    public ConfigurerModule eventProcessingCustomizer() {
+        return configurer -> configurer
+                .eventProcessing()
+                .registerPooledStreamingEventProcessor(
+                        "io.axoniq.demo.bikerental.payment",
+                        Configuration::eventStore,
+                        (c, b) -> b.workerExecutor(workerExecutorService())
+                                   .batchSize(100)
+                );
+    }
 
 }

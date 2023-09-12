@@ -29,7 +29,7 @@ public class RentalApplication {
         SpringApplication.run(RentalApplication.class, args);
     }
 
-    @Bean
+    @Bean(destroyMethod = "")
     public DeadlineManager deadlineManager(TransactionManager transactionManager,
                                            Configuration config) {
         return SimpleDeadlineManager.builder()
@@ -44,9 +44,9 @@ public class RentalApplication {
     }
 
     @Autowired
-    public void configureXStreamSecurity(XStream xStream, ObjectMapper objectMapper) {
-        xStream.allowTypesByWildcard(new String[]{"io.axoniq.demo.bikerental.coreapi.**"});
-        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);
+    public void configureSerializers(ObjectMapper objectMapper) {
+        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(),
+                                           ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);
     }
 
     @Bean
@@ -57,7 +57,7 @@ public class RentalApplication {
                         "PaymentSagaProcessor",
                         Configuration::eventStore,
                         (c, b) -> b.workerExecutor(workerExecutorService())
-                                .initialSegmentCount(2)
+                                   .initialSegmentCount(2)
                                    .batchSize(100)
                                    .initialToken(StreamableMessageSource::createHeadToken)
                 )
@@ -68,5 +68,4 @@ public class RentalApplication {
                                    .batchSize(100)
                 );
     }
-
 }

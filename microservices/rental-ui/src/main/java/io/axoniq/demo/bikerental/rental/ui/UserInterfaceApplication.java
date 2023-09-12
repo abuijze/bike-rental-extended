@@ -14,9 +14,7 @@ public class UserInterfaceApplication {
 	}
 
 	@Autowired
-	public void configureXStreamSecurity(XStream xStream, ObjectMapper objectMapper) {
-		xStream.allowTypesByWildcard(new String[]{"io.axoniq.demo.bikerental.coreapi.**"});
+	public void configureSerializers(ObjectMapper objectMapper) {
 		objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);
 	}
-
 }
