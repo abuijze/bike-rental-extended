@@ -11,7 +11,6 @@ import org.axonframework.config.ConfigurationScopeAwareProvider;
 import org.axonframework.config.ConfigurerModule;
 import org.axonframework.deadline.DeadlineManager;
 import org.axonframework.deadline.SimpleDeadlineManager;
-import org.axonframework.eventhandling.deadletter.jpa.DeadLetterEntry;
 import org.axonframework.eventhandling.tokenstore.jpa.TokenEntry;
 import org.axonframework.messaging.StreamableMessageSource;
 import org.axonframework.modelling.saga.repository.jpa.SagaEntry;
@@ -91,12 +90,12 @@ public class RentalApplication {
                                              TypeReference.of("org.hibernate.query.SelectionQuery"),
                                              TypeReference.of("org.hibernate.query.CommonQueryContract"));
 
+            // Allows running h2 in Server Mode in Native
             hints.reflection()
                  .registerType(TcpServer.class,
                                MemberCategory.PUBLIC_CLASSES,
                                MemberCategory.INVOKE_DECLARED_CONSTRUCTORS,
                                MemberCategory.INVOKE_DECLARED_METHODS);
-
         }
     }
 }
