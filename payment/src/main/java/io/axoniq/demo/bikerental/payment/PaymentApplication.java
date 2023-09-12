@@ -2,9 +2,6 @@ package io.axoniq.demo.bikerental.payment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentStatus;
-import jakarta.persistence.EntityManager;
-import org.axonframework.common.jpa.EntityManagerProvider;
-import org.axonframework.common.jpa.SimpleEntityManagerProvider;
 import org.axonframework.config.Configuration;
 import org.axonframework.config.ConfigurerModule;
 import org.axonframework.config.ConfigurerModule;
