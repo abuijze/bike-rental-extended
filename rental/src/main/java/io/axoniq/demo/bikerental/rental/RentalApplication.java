@@ -54,6 +54,7 @@ public class RentalApplication {
         return Executors.newScheduledThreadPool(4);
     }
 
+
     @Autowired
     public void configureSerializers(ObjectMapper objectMapper) {
         objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(),

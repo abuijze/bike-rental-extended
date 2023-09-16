@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentStatus;
 import org.axonframework.config.Configuration;
 import org.axonframework.config.ConfigurerModule;
-import org.axonframework.config.ConfigurerModule;
 import org.axonframework.eventhandling.tokenstore.jpa.TokenEntry;
 import org.springframework.aot.hint.MemberCategory;
 import org.springframework.aot.hint.RuntimeHints;
@@ -52,10 +51,12 @@ public class PaymentApplication {
     }
 
     public static class CustomRuntimeHints implements RuntimeHintsRegistrar {
+
         @Override
         public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
             hints.proxies().registerJdkProxy(TypeReference.of("org.hibernate.query.hql.spi.SqmQueryImplementor"),
-                                             TypeReference.of("org.hibernate.query.sqm.internal.SqmInterpretationsKey$InterpretationsKeySource"),
+                                             TypeReference.of(
+                                                     "org.hibernate.query.sqm.internal.SqmInterpretationsKey$InterpretationsKeySource"),
                                              TypeReference.of("org.hibernate.query.spi.DomainQueryExecutionContext"),
                                              TypeReference.of("org.hibernate.query.SelectionQuery"),
                                              TypeReference.of("org.hibernate.query.CommonQueryContract"));
@@ -66,7 +67,6 @@ public class PaymentApplication {
                                MemberCategory.INVOKE_DECLARED_METHODS,
                                MemberCategory.INTROSPECT_DECLARED_METHODS,
                                MemberCategory.INTROSPECT_DECLARED_CONSTRUCTORS);
-
         }
     }
 }

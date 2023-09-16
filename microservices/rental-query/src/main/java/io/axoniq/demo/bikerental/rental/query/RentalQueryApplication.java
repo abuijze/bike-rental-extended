@@ -1,7 +1,6 @@
 package io.axoniq.demo.bikerental.rental.query;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.thoughtworks.xstream.XStream;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
 import org.axonframework.config.ConfigurerModule;
 import org.axonframework.eventhandling.tokenstore.jpa.TokenEntry;

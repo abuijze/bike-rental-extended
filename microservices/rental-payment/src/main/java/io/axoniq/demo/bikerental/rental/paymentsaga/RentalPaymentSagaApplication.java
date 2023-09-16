@@ -1,7 +1,6 @@
 package io.axoniq.demo.bikerental.rental.paymentsaga;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.thoughtworks.xstream.XStream;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
 import org.axonframework.common.transaction.TransactionManager;
 import org.axonframework.config.Configuration;
