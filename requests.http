@@ -44,5 +44,5 @@ POST {{rental}}/returnBike?bikeId=28dc25a1-33cc-42fa-a660-cc19cb8711f1
 Accept: application/json
 
 ### Generate Rentals
-POST {{rental}}/generateRentals?bikeType=city&loops=500&concurrency=10
+POST {{rental}}/generateRentals?bikeType=city&loops=30&concurrency=10
 Accept: text/plain
