@@ -1,11 +1,9 @@
 package io.axoniq.demo.bikerental.payment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.thoughtworks.xstream.XStream;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentStatus;
 import org.axonframework.config.Configuration;
 import org.axonframework.config.ConfigurerModule;
-import org.axonframework.config.EventProcessingConfigurer;
 import org.axonframework.eventhandling.tokenstore.jpa.TokenEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -20,9 +18,9 @@ import java.util.concurrent.ScheduledExecutorService;
 @SpringBootApplication
 public class PaymentApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(PaymentApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(PaymentApplication.class, args);
+    }
 
     @Bean(destroyMethod = "shutdown")
     public ScheduledExecutorService workerExecutorService() {
@@ -45,5 +43,4 @@ public class PaymentApplication {
                                    .batchSize(100)
                 );
     }
-
 }
