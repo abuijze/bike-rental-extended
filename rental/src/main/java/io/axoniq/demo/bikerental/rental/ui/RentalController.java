@@ -28,6 +28,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -64,7 +65,11 @@ public class RentalController {
 
     @GetMapping("/bikeUpdates")
     public Flux<ServerSentEvent<String>> subscribeToAllUpdates() {
-        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery(FIND_ALL_QUERY, null, ResponseTypes.multipleInstancesOf(BikeStatus.class), ResponseTypes.instanceOf(BikeStatus.class));
+        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery(
+                FIND_ALL_QUERY,
+                null,
+                ResponseTypes.multipleInstancesOf(BikeStatus.class),
+                ResponseTypes.instanceOf(BikeStatus.class));
         return subscriptionQueryResult.initialResult()
                                       .flatMapMany(Flux::fromIterable)
                                       .concatWith(subscriptionQueryResult.updates())
@@ -79,7 +84,11 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
  */
     @GetMapping("/bikeUpdatesJson")
     public Flux<ServerSentEvent<BikeStatus>> subscribeToAllUpdatesJson() {
-        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery(FIND_ALL_QUERY, null, ResponseTypes.multipleInstancesOf(BikeStatus.class), ResponseTypes.instanceOf(BikeStatus.class));
+        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery(
+                FIND_ALL_QUERY,
+                null,
+                ResponseTypes.multipleInstancesOf(BikeStatus.class),
+                ResponseTypes.instanceOf(BikeStatus.class));
         return subscriptionQueryResult.initialResult()
                                       .flatMapMany(Flux::fromIterable)
                                       .concatWith(subscriptionQueryResult.updates())
@@ -89,7 +98,11 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
 
     @GetMapping("/bikeUpdates/{bikeId}")
     public Flux<ServerSentEvent<String>> subscribeToBikeUpdates(@PathVariable("bikeId") String bikeId) {
-        SubscriptionQueryResult<BikeStatus, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery(FIND_ONE_QUERY, bikeId, BikeStatus.class, BikeStatus.class);
+        SubscriptionQueryResult<BikeStatus, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery(
+                FIND_ONE_QUERY,
+                bikeId,
+                BikeStatus.class,
+                BikeStatus.class);
         return subscriptionQueryResult.initialResult()
                                       .concatWith(subscriptionQueryResult.updates())
                                       .doFinally(s -> subscriptionQueryResult.close())
@@ -98,7 +111,8 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
     }
 
     @PostMapping("/requestBike")
-    public CompletableFuture<String> requestBike(@RequestParam("bikeId") String bikeId, @RequestParam(value = "renter", required = false) String renter) {
+    public CompletableFuture<String> requestBike(@RequestParam("bikeId") String bikeId,
+                                                 @RequestParam(value = "renter", required = false) String renter) {
         return commandGateway.send(new RequestBikeCommand(bikeId, renter != null ? renter : randomRenter()));
     }
 
@@ -109,11 +123,13 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
 
     @GetMapping("findPayment")
     public Mono<String> getPaymentId(@RequestParam("reference") String paymentRef) {
-        SubscriptionQueryResult<String, String> queryResult = queryGateway.subscriptionQuery("getPaymentId", paymentRef, String.class, String.class);
+        SubscriptionQueryResult<String, String> queryResult = queryGateway.subscriptionQuery("getPaymentId",
+                                                                                             paymentRef,
+                                                                                             String.class,
+                                                                                             String.class);
         return queryResult.initialResult().concatWith(queryResult.updates())
                           .filter(Objects::nonNull)
                           .next();
-
     }
 
     @GetMapping("pendingPayments")
@@ -129,7 +145,11 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
 
     @GetMapping(value = "watch", produces = "text/event-stream")
     public Flux<String> watchAll() {
-        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQuery = queryGateway.subscriptionQuery(FIND_ALL_QUERY, null, ResponseTypes.multipleInstancesOf(BikeStatus.class), ResponseTypes.instanceOf(BikeStatus.class));
+        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQuery = queryGateway.subscriptionQuery(
+                FIND_ALL_QUERY,
+                null,
+                ResponseTypes.multipleInstancesOf(BikeStatus.class),
+                ResponseTypes.instanceOf(BikeStatus.class));
         return subscriptionQuery.initialResult()
                                 .flatMapMany(Flux::fromIterable)
                                 .concatWith(subscriptionQuery.updates())
@@ -138,7 +158,11 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
 
     @GetMapping(value = "watch/{bikeId}", produces = "text/event-stream")
     public Flux<String> watchBike(@PathVariable("bikeId") String bikeId) {
-        SubscriptionQueryResult<BikeStatus, BikeStatus> subscriptionQuery = queryGateway.subscriptionQuery(FIND_ONE_QUERY, bikeId, ResponseTypes.instanceOf(BikeStatus.class), ResponseTypes.instanceOf(BikeStatus.class));
+        SubscriptionQueryResult<BikeStatus, BikeStatus> subscriptionQuery = queryGateway.subscriptionQuery(
+                FIND_ONE_QUERY,
+                bikeId,
+                ResponseTypes.instanceOf(BikeStatus.class),
+                ResponseTypes.instanceOf(BikeStatus.class));
         return subscriptionQuery.initialResult()
                                 .concatWith(subscriptionQuery.updates())
                                 .map(bs -> bs.getBikeId() + " -> " + bs.description());
@@ -149,10 +173,11 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
     public Flux<String> generateData(@RequestParam(value = "bikeType") String bikeType,
                                      @RequestParam("loops") int loops,
                                      @RequestParam(value = "concurrency", defaultValue = "1") int concurrency,
-                                     @RequestParam(value = "abandonPaymentFactor", defaultValue = "100") int abandonPaymentFactor) {
+                                     @RequestParam(value = "abandonPaymentFactor", defaultValue = "100") int abandonPaymentFactor,
+                                     @RequestParam(value = "delay", defaultValue = "0") int delay) {
 
         return Flux.range(0, loops)
-                   .flatMap(j -> executeRentalCycle(bikeType, randomRenter(), abandonPaymentFactor)
+                   .flatMap(j -> executeRentalCycle(bikeType, randomRenter(), abandonPaymentFactor, delay)
                                     .map(r -> "OK - Rented, Payed and Returned\n")
                                     .onErrorResume(e -> Mono.just("Not ok: " + e.getMessage() + "\n")),
                             concurrency);
@@ -163,14 +188,26 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
         return queryGateway.query(FIND_ONE_QUERY, bikeId, BikeStatus.class);
     }
 
-    private Mono<String> executeRentalCycle(String bikeType, String renter, int abandonPaymentFactor) {
+    private Mono<String> executeRentalCycle(String bikeType, String renter, int abandonPaymentFactor, int delay) {
         CompletableFuture<String> result = selectRandomAvailableBike(bikeType)
                 .thenCompose(bikeId -> commandGateway.send(new RequestBikeCommand(bikeId, renter))
-                                                     .thenCompose(paymentRef -> executePayment(bikeId, (String) paymentRef, abandonPaymentFactor))
+                                                     .thenComposeAsync(paymentRef -> executePayment(bikeId,
+                                                                                                    (String) paymentRef,
+                                                                                                    abandonPaymentFactor),
+                                                                       CompletableFuture.delayedExecutor(randomDelay(
+                                                                               delay), TimeUnit.MILLISECONDS))
                                                      .thenCompose(r -> whenBikeUnlocked(bikeId))
-                                                     .thenCompose(r -> commandGateway.send(new ReturnBikeCommand(bikeId, randomLocation())))
+                                                     .thenComposeAsync(r -> commandGateway.send(new ReturnBikeCommand(
+                                                                               bikeId,
+                                                                               randomLocation())),
+                                                                       CompletableFuture.delayedExecutor(randomDelay(
+                                                                               delay), TimeUnit.MILLISECONDS))
                                                      .thenApply(r -> bikeId));
         return Mono.fromFuture(result);
+    }
+
+    private int randomDelay(int delay) {
+        return ThreadLocalRandom.current().nextInt(delay - (delay >> 2), delay + delay + (delay >> 2));
     }
 
     private CompletableFuture<String> selectRandomAvailableBike(String bikeType) {
@@ -184,7 +221,10 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
     }
 
     private CompletableFuture<String> whenBikeUnlocked(String bikeId) {
-        SubscriptionQueryResult<BikeStatus, BikeStatus> queryResult = queryGateway.subscriptionQuery(FIND_ONE_QUERY, bikeId, BikeStatus.class, BikeStatus.class);
+        SubscriptionQueryResult<BikeStatus, BikeStatus> queryResult = queryGateway.subscriptionQuery(FIND_ONE_QUERY,
+                                                                                                     bikeId,
+                                                                                                     BikeStatus.class,
+                                                                                                     BikeStatus.class);
         return queryResult.initialResult().concatWith(queryResult.updates())
                           .any(status -> status.getStatus() == RentalStatus.RENTED)
                           .map(s -> bikeId)
@@ -193,10 +233,13 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
     }
 
     private CompletableFuture<String> executePayment(String bikeId, String paymentRef, int abandonPaymentFactor) {
-        if (ThreadLocalRandom.current().nextInt(abandonPaymentFactor) == 0) {
+        if (abandonPaymentFactor > 0 && ThreadLocalRandom.current().nextInt(abandonPaymentFactor) == 0) {
             return CompletableFuture.failedFuture(new IllegalStateException("Customer refused to pay"));
         }
-        SubscriptionQueryResult<String, String> queryResult = queryGateway.subscriptionQuery("getPaymentId", paymentRef, String.class, String.class);
+        SubscriptionQueryResult<String, String> queryResult = queryGateway.subscriptionQuery("getPaymentId",
+                                                                                             paymentRef,
+                                                                                             String.class,
+                                                                                             String.class);
         return queryResult.initialResult().concatWith(queryResult.updates())
                           .filter(Objects::nonNull)
                           .doOnNext(n -> queryResult.close())
@@ -213,5 +256,4 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
     private String randomLocation() {
         return LOCATIONS.get(ThreadLocalRandom.current().nextInt(LOCATIONS.size()));
     }
-
 }

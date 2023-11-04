@@ -4,7 +4,7 @@
 
     <div class="row">
       <div class="columns">
-        <div class="text-h4">Create Bikes</div>
+        <div class="text-h4">Register Bikes</div>
         <div class="row q-gutter-sm">
           <q-input label="Number of bikes" stack-label dense v-model="newBikeParams.bikes" />
           <q-input label="Bike type" stack-label dense v-model="newBikeParams.bikeType" />
@@ -21,7 +21,8 @@
           <q-input label="Bike type" stack-label dense v-model="rentalsParams.bikeType" />
           <q-input label="Loops" stack-label dense v-model="rentalsParams.loops" />
           <q-input label="Concurrency" stack-label dense v-model="rentalsParams.concurrency" />
-          <q-input label="Abandon payment rate" stack-label dense v-model="rentalsParams.abandonPaymentFactor" />
+          <q-input label="Delay (+/- 25%)" stack-label dense v-model="rentalsParams.delay" />
+          <q-input label="Abandon payment rate (1/n)" stack-label dense v-model="rentalsParams.abandonPaymentFactor" />
 
           <q-btn icon="monetization_on" label="Rent" @click="generateRentals(rentalsParams)" />
     
@@ -74,13 +75,12 @@ const newBikeParams = ref({
 })
 
 
-const rentBikeManualId = ref(null)
-
 const rentalsParams = ref({
             bikeType : "mountainbike",
-            loops : "16",
+            loops : "64",
             concurrency : "8",
-            abandonPaymentFactor: 100
+            abandonPaymentFactor: 0,
+            delay: 1000
         })
 
 const store = useBikeStore()
@@ -95,11 +95,11 @@ evtSource.onmessage = (event) => {
 const paginationOptions=[10,25,50,100]
 
 const columns = [
-  { name: 'bikeId', align: 'center', label: 'BikeId', field: 'bikeId', sortable: true },
-  { name: 'bikeType', label: 'bikeType', field: 'bikeType', sortable: true },
-  { name: 'location', label: 'location', field: 'location', sortable: true },
-  { name: 'renter', label: 'renter', field: 'renter', sortable: true },
-  { name: 'status', label: 'status', field: 'status', sortable: true },
+  { name: 'bikeId', align: 'left', label: 'BikeId', field: 'bikeId', sortable: true },
+  { name: 'bikeType', align: 'left',label: 'bikeType', field: 'bikeType', sortable: true },
+  { name: 'location', align: 'left',label: 'location', field: 'location', sortable: true },
+  { name: 'renter', align: 'left',label: 'renter', field: 'renter', sortable: true },
+  { name: 'status', align: 'right',label: 'status', field: 'status', sortable: true },
   // { name: 'actions', label: 'actions', field: 'actions', sortable: true },
 ]
 
