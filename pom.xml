@@ -23,13 +23,14 @@
 		<module>microservices/rental-command</module>
 		<module>microservices/rental-query</module>
 		<module>microservices/rental-payment</module>
-	</modules>
+        <module>frontend</module>
+    </modules>
 
 	<properties>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 		<java.version>17</java.version>
-		<axon.version>4.8.2</axon.version>
+		<axon.version>4.9.0</axon.version>
 	</properties>
 
 	<dependencies>
@@ -41,6 +42,11 @@
 			<groupId>org.axonframework</groupId>
 			<artifactId>axon-spring-boot-starter</artifactId>
 			<version>${axon.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.axoniq.console</groupId>
+			<artifactId>console-framework-client-spring-boot-starter</artifactId>
+			<version>1.0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.axonframework</groupId>

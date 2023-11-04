@@ -12,6 +12,7 @@ import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.axonframework.queryhandling.SubscriptionQueryResult;
 import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,10 +20,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -30,6 +29,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/")
 public class RentalController {
@@ -70,6 +70,20 @@ public class RentalController {
                                       .concatWith(subscriptionQueryResult.updates())
                                       .doFinally(s -> subscriptionQueryResult.close())
                                       .map(BikeStatus::description)
+                                      .map(description -> ServerSentEvent.builder(description).build());
+    }
+
+    /*
+Event source spec does not support headers, so we go for another url
+See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsource-interface
+ */
+    @GetMapping("/bikeUpdatesJson")
+    public Flux<ServerSentEvent<BikeStatus>> subscribeToAllUpdatesJson() {
+        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery(FIND_ALL_QUERY, null, ResponseTypes.multipleInstancesOf(BikeStatus.class), ResponseTypes.instanceOf(BikeStatus.class));
+        return subscriptionQueryResult.initialResult()
+                                      .flatMapMany(Flux::fromIterable)
+                                      .concatWith(subscriptionQueryResult.updates())
+                                      .doFinally(s -> subscriptionQueryResult.close())
                                       .map(description -> ServerSentEvent.builder(description).build());
     }
 
