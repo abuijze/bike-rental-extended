@@ -19,7 +19,7 @@ export const useBikeStore = defineStore('bikes', {
     //   this.counter++;
     },
     async generateBikes(generateBikesParams){
-        let res = await fetch(URL+'/?'+new URLSearchParams(generateBikesParams),{
+        let res = await fetch(URL+'/bikes?'+new URLSearchParams(generateBikesParams),{
             method: "POST"
         })
     },

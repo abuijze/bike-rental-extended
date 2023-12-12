@@ -47,9 +47,9 @@ public class RentalController {
         this.queryGateway = queryGateway;
     }
 
-    @PostMapping
-    public CompletableFuture<Void> generateBikes(@RequestParam("bikes") int bikeCount,
-                                                 @RequestParam(value = "bikeType") String bikeType) {
+    @PostMapping("/bikes")
+    public CompletableFuture<Void> generateBikes(@RequestParam("count") int bikeCount,
+                                                 @RequestParam(value = "type") String bikeType) {
         CompletableFuture<Void> all = CompletableFuture.completedFuture(null);
         for (int i = 0; i < bikeCount; i++) {
             all = CompletableFuture.allOf(all,
@@ -207,6 +207,9 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
     }
 
     private int randomDelay(int delay) {
+        if (delay <= 0) {
+            return 0;
+        }
         return ThreadLocalRandom.current().nextInt(delay - (delay >> 2), delay + delay + (delay >> 2));
     }
 

@@ -1,6 +1,6 @@
 ### Generate bikes
 # First, generate some bikes
-POST {{rental}}/?bikes=20&bikeType=city
+POST {{rental}}/bikes?count=20&type=city
 Accept: application/json
 
 ### List all
