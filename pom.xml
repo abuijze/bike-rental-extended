@@ -52,14 +52,8 @@
 			<artifactId>axon-spring-boot-starter</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>io.axoniq.console</groupId>
-			<artifactId>console-framework-client-spring-boot-starter</artifactId>
-			<version>1.0.2</version>
-		</dependency>
-		<dependency>
 			<groupId>org.axonframework.extensions.spring-aot</groupId>
 			<artifactId>axon-spring-aot</artifactId>
-			<version>${axon.version}</version>
 		</dependency>
 <!--
 		<dependency>
