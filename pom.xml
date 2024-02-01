@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.1.3</version>
+		<version>3.1.6</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>io.axoniq.demo.bikerental</groupId>
@@ -23,13 +23,15 @@
 		<module>microservices/rental-command</module>
 		<module>microservices/rental-query</module>
 		<module>microservices/rental-payment</module>
-	</modules>
+        <module>frontend</module>
+    </modules>
 
 	<properties>
+		<netty.version>4.1.79.Final</netty.version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 		<java.version>17</java.version>
-		<axon.version>4.9.0-SNAPSHOT</axon.version>
+		<axon.version>4.9.0</axon.version>
 	</properties>
 
 	<dependencies>
@@ -91,17 +93,31 @@
 		</dependency>
 	</dependencies>
 
-	<repositories>
-		<repository>
-			<id>sonatype-snapshots</id>
-			<url> https://oss.sonatype.org/content/repositories/snapshots</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<releases>
-				<enabled>false</enabled>
-			</releases>
-		</repository>
-	</repositories>
-
+    <profiles>
+        <profile>
+            <id>native</id>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-maven-plugin</artifactId>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.graalvm.buildtools</groupId>
+                            <artifactId>native-maven-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <id>build-image</id>
+                                    <goals>
+                                        <goal>compile-no-fork</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
 </project>

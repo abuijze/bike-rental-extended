@@ -1,6 +1,8 @@
 package io.axoniq.demo.bikerental.rental.paymentsaga;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentConfirmedEvent;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentPreparedEvent;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentRejectedEvent;
@@ -37,7 +39,8 @@ public class PaymentSaga {
     private String renter;
 
     @JsonCreator
-    public PaymentSaga(String bikeId, String renter) {
+    public PaymentSaga(@JsonProperty("bikeId") String bikeId,
+                       @JsonProperty("renter") String renter) {
         this.bikeId = bikeId;
         this.renter = renter;
     }
@@ -93,10 +96,14 @@ public class PaymentSaga {
                       });
     }
 
+    // getters to satisfy Jackson requirements for JSON serialization
+
+    @SuppressWarnings("unused")
     public String getBikeId() {
         return bikeId;
     }
 
+    @SuppressWarnings("unused")
     public String getRenter() {
         return renter;
     }

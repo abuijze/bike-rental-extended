@@ -35,6 +35,7 @@ public class Bike {
     public Bike() {
     }
 
+    /* Constructor used to reconstruct the aggregate from a JSON based snapshot with Jackson */
     @JsonCreator
     public Bike(@JsonProperty("bikeId") String bikeId,
                 @JsonProperty("available") boolean isAvailable,

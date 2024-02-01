@@ -12,6 +12,7 @@ import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.axonframework.queryhandling.SubscriptionQueryResult;
 import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,17 +20,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/")
 public class RentalController {
@@ -46,9 +47,9 @@ public class RentalController {
         this.queryGateway = queryGateway;
     }
 
-    @PostMapping
-    public CompletableFuture<Void> generateBikes(@RequestParam("bikes") int bikeCount,
-                                                 @RequestParam(value = "bikeType") String bikeType) {
+    @PostMapping("/bikes")
+    public CompletableFuture<Void> generateBikes(@RequestParam("count") int bikeCount,
+                                                 @RequestParam(value = "type") String bikeType) {
         CompletableFuture<Void> all = CompletableFuture.completedFuture(null);
         for (int i = 0; i < bikeCount; i++) {
             all = CompletableFuture.allOf(all,
@@ -64,7 +65,11 @@ public class RentalController {
 
     @GetMapping("/bikeUpdates")
     public Flux<ServerSentEvent<String>> subscribeToAllUpdates() {
-        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery(FIND_ALL_QUERY, null, ResponseTypes.multipleInstancesOf(BikeStatus.class), ResponseTypes.instanceOf(BikeStatus.class));
+        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery(
+                FIND_ALL_QUERY,
+                null,
+                ResponseTypes.multipleInstancesOf(BikeStatus.class),
+                ResponseTypes.instanceOf(BikeStatus.class));
         return subscriptionQueryResult.initialResult()
                                       .flatMapMany(Flux::fromIterable)
                                       .concatWith(subscriptionQueryResult.updates())
@@ -73,9 +78,31 @@ public class RentalController {
                                       .map(description -> ServerSentEvent.builder(description).build());
     }
 
+    /*
+Event source spec does not support headers, so we go for another url
+See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsource-interface
+ */
+    @GetMapping("/bikeUpdatesJson")
+    public Flux<ServerSentEvent<BikeStatus>> subscribeToAllUpdatesJson() {
+        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery(
+                FIND_ALL_QUERY,
+                null,
+                ResponseTypes.multipleInstancesOf(BikeStatus.class),
+                ResponseTypes.instanceOf(BikeStatus.class));
+        return subscriptionQueryResult.initialResult()
+                                      .flatMapMany(Flux::fromIterable)
+                                      .concatWith(subscriptionQueryResult.updates())
+                                      .doFinally(s -> subscriptionQueryResult.close())
+                                      .map(description -> ServerSentEvent.builder(description).build());
+    }
+
     @GetMapping("/bikeUpdates/{bikeId}")
     public Flux<ServerSentEvent<String>> subscribeToBikeUpdates(@PathVariable("bikeId") String bikeId) {
-        SubscriptionQueryResult<BikeStatus, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery(FIND_ONE_QUERY, bikeId, BikeStatus.class, BikeStatus.class);
+        SubscriptionQueryResult<BikeStatus, BikeStatus> subscriptionQueryResult = queryGateway.subscriptionQuery(
+                FIND_ONE_QUERY,
+                bikeId,
+                BikeStatus.class,
+                BikeStatus.class);
         return subscriptionQueryResult.initialResult()
                                       .concatWith(subscriptionQueryResult.updates())
                                       .doFinally(s -> subscriptionQueryResult.close())
@@ -84,7 +111,8 @@ public class RentalController {
     }
 
     @PostMapping("/requestBike")
-    public CompletableFuture<String> requestBike(@RequestParam("bikeId") String bikeId, @RequestParam(value = "renter", required = false) String renter) {
+    public CompletableFuture<String> requestBike(@RequestParam("bikeId") String bikeId,
+                                                 @RequestParam(value = "renter", required = false) String renter) {
         return commandGateway.send(new RequestBikeCommand(bikeId, renter != null ? renter : randomRenter()));
     }
 
@@ -95,11 +123,13 @@ public class RentalController {
 
     @GetMapping("findPayment")
     public Mono<String> getPaymentId(@RequestParam("reference") String paymentRef) {
-        SubscriptionQueryResult<String, String> queryResult = queryGateway.subscriptionQuery("getPaymentId", paymentRef, String.class, String.class);
+        SubscriptionQueryResult<String, String> queryResult = queryGateway.subscriptionQuery("getPaymentId",
+                                                                                             paymentRef,
+                                                                                             String.class,
+                                                                                             String.class);
         return queryResult.initialResult().concatWith(queryResult.updates())
                           .filter(Objects::nonNull)
                           .next();
-
     }
 
     @GetMapping("pendingPayments")
@@ -115,7 +145,11 @@ public class RentalController {
 
     @GetMapping(value = "watch", produces = "text/event-stream")
     public Flux<String> watchAll() {
-        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQuery = queryGateway.subscriptionQuery(FIND_ALL_QUERY, null, ResponseTypes.multipleInstancesOf(BikeStatus.class), ResponseTypes.instanceOf(BikeStatus.class));
+        SubscriptionQueryResult<List<BikeStatus>, BikeStatus> subscriptionQuery = queryGateway.subscriptionQuery(
+                FIND_ALL_QUERY,
+                null,
+                ResponseTypes.multipleInstancesOf(BikeStatus.class),
+                ResponseTypes.instanceOf(BikeStatus.class));
         return subscriptionQuery.initialResult()
                                 .flatMapMany(Flux::fromIterable)
                                 .concatWith(subscriptionQuery.updates())
@@ -124,7 +158,11 @@ public class RentalController {
 
     @GetMapping(value = "watch/{bikeId}", produces = "text/event-stream")
     public Flux<String> watchBike(@PathVariable("bikeId") String bikeId) {
-        SubscriptionQueryResult<BikeStatus, BikeStatus> subscriptionQuery = queryGateway.subscriptionQuery(FIND_ONE_QUERY, bikeId, ResponseTypes.instanceOf(BikeStatus.class), ResponseTypes.instanceOf(BikeStatus.class));
+        SubscriptionQueryResult<BikeStatus, BikeStatus> subscriptionQuery = queryGateway.subscriptionQuery(
+                FIND_ONE_QUERY,
+                bikeId,
+                ResponseTypes.instanceOf(BikeStatus.class),
+                ResponseTypes.instanceOf(BikeStatus.class));
         return subscriptionQuery.initialResult()
                                 .concatWith(subscriptionQuery.updates())
                                 .map(bs -> bs.getBikeId() + " -> " + bs.description());
@@ -135,10 +173,11 @@ public class RentalController {
     public Flux<String> generateData(@RequestParam(value = "bikeType") String bikeType,
                                      @RequestParam("loops") int loops,
                                      @RequestParam(value = "concurrency", defaultValue = "1") int concurrency,
-                                     @RequestParam(value = "abandonPaymentFactor", defaultValue = "100") int abandonPaymentFactor) {
+                                     @RequestParam(value = "abandonPaymentFactor", defaultValue = "100") int abandonPaymentFactor,
+                                     @RequestParam(value = "delay", defaultValue = "0") int delay) {
 
         return Flux.range(0, loops)
-                   .flatMap(j -> executeRentalCycle(bikeType, randomRenter(), abandonPaymentFactor)
+                   .flatMap(j -> executeRentalCycle(bikeType, randomRenter(), abandonPaymentFactor, delay)
                                     .map(r -> "OK - Rented, Payed and Returned\n")
                                     .onErrorResume(e -> Mono.just("Not ok: " + e.getMessage() + "\n")),
                             concurrency);
@@ -149,14 +188,29 @@ public class RentalController {
         return queryGateway.query(FIND_ONE_QUERY, bikeId, BikeStatus.class);
     }
 
-    private Mono<String> executeRentalCycle(String bikeType, String renter, int abandonPaymentFactor) {
+    private Mono<String> executeRentalCycle(String bikeType, String renter, int abandonPaymentFactor, int delay) {
         CompletableFuture<String> result = selectRandomAvailableBike(bikeType)
                 .thenCompose(bikeId -> commandGateway.send(new RequestBikeCommand(bikeId, renter))
-                                                     .thenCompose(paymentRef -> executePayment(bikeId, (String) paymentRef, abandonPaymentFactor))
+                                                     .thenComposeAsync(paymentRef -> executePayment(bikeId,
+                                                                                                    (String) paymentRef,
+                                                                                                    abandonPaymentFactor),
+                                                                       CompletableFuture.delayedExecutor(randomDelay(
+                                                                               delay), TimeUnit.MILLISECONDS))
                                                      .thenCompose(r -> whenBikeUnlocked(bikeId))
-                                                     .thenCompose(r -> commandGateway.send(new ReturnBikeCommand(bikeId, randomLocation())))
+                                                     .thenComposeAsync(r -> commandGateway.send(new ReturnBikeCommand(
+                                                                               bikeId,
+                                                                               randomLocation())),
+                                                                       CompletableFuture.delayedExecutor(randomDelay(
+                                                                               delay), TimeUnit.MILLISECONDS))
                                                      .thenApply(r -> bikeId));
         return Mono.fromFuture(result);
+    }
+
+    private int randomDelay(int delay) {
+        if (delay <= 0) {
+            return 0;
+        }
+        return ThreadLocalRandom.current().nextInt(delay - (delay >> 2), delay + delay + (delay >> 2));
     }
 
     private CompletableFuture<String> selectRandomAvailableBike(String bikeType) {
@@ -170,7 +224,10 @@ public class RentalController {
     }
 
     private CompletableFuture<String> whenBikeUnlocked(String bikeId) {
-        SubscriptionQueryResult<BikeStatus, BikeStatus> queryResult = queryGateway.subscriptionQuery(FIND_ONE_QUERY, bikeId, BikeStatus.class, BikeStatus.class);
+        SubscriptionQueryResult<BikeStatus, BikeStatus> queryResult = queryGateway.subscriptionQuery(FIND_ONE_QUERY,
+                                                                                                     bikeId,
+                                                                                                     BikeStatus.class,
+                                                                                                     BikeStatus.class);
         return queryResult.initialResult().concatWith(queryResult.updates())
                           .any(status -> status.getStatus() == RentalStatus.RENTED)
                           .map(s -> bikeId)
@@ -179,10 +236,13 @@ public class RentalController {
     }
 
     private CompletableFuture<String> executePayment(String bikeId, String paymentRef, int abandonPaymentFactor) {
-        if (ThreadLocalRandom.current().nextInt(abandonPaymentFactor) == 0) {
+        if (abandonPaymentFactor > 0 && ThreadLocalRandom.current().nextInt(abandonPaymentFactor) == 0) {
             return CompletableFuture.failedFuture(new IllegalStateException("Customer refused to pay"));
         }
-        SubscriptionQueryResult<String, String> queryResult = queryGateway.subscriptionQuery("getPaymentId", paymentRef, String.class, String.class);
+        SubscriptionQueryResult<String, String> queryResult = queryGateway.subscriptionQuery("getPaymentId",
+                                                                                             paymentRef,
+                                                                                             String.class,
+                                                                                             String.class);
         return queryResult.initialResult().concatWith(queryResult.updates())
                           .filter(Objects::nonNull)
                           .doOnNext(n -> queryResult.close())
@@ -199,5 +259,4 @@ public class RentalController {
     private String randomLocation() {
         return LOCATIONS.get(ThreadLocalRandom.current().nextInt(LOCATIONS.size()));
     }
-
 }
