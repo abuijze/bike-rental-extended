@@ -12,9 +12,12 @@ import io.axoniq.demo.bikerental.coreapi.rental.RejectRequestCommand;
 import io.axoniq.demo.bikerental.coreapi.rental.RequestBikeCommand;
 import io.axoniq.demo.bikerental.coreapi.rental.RequestRejectedEvent;
 import io.axoniq.demo.bikerental.coreapi.rental.ReturnBikeCommand;
+import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.commandhandling.CommandHandler;
 import org.axonframework.eventsourcing.EventSourcingHandler;
+import org.axonframework.modelling.command.AggregateCreationPolicy;
 import org.axonframework.modelling.command.AggregateIdentifier;
+import org.axonframework.modelling.command.CreationPolicy;
 import org.axonframework.spring.stereotype.Aggregate;
 
 import java.util.Objects;
@@ -32,6 +35,7 @@ public class Bike {
     private String reservedBy;
     private boolean reservationConfirmed;
 
+    /* We need to explicitly declare this one to support the constructor for Jackson */
     public Bike() {
     }
 
@@ -48,14 +52,15 @@ public class Bike {
     }
 
     @CommandHandler
-    public Bike(RegisterBikeCommand command) {
+    @CreationPolicy(AggregateCreationPolicy.ALWAYS)
+    public void handle(RegisterBikeCommand command) {
         apply(new BikeRegisteredEvent(command.getBikeId(), command.getBikeType(), command.getLocation()));
     }
 
     @CommandHandler
     public String handle(RequestBikeCommand command) {
         if (!this.isAvailable) {
-            throw new IllegalStateException("Bike is already rented");
+            throw new CommandExecutionException("Bike is already rented", null, "Already rented");
         }
         String rentalReference = UUID.randomUUID().toString();
         apply(new BikeRequestedEvent(command.getBikeId(), command.getRenter(), rentalReference));
@@ -67,7 +72,7 @@ public class Bike {
     public void handle(ApproveRequestCommand command) {
         if (!Objects.equals(reservedBy, command.getRenter())
                 || reservationConfirmed) {
-            return ;
+            return;
         }
         apply(new BikeInUseEvent(command.getBikeId(), command.getRenter()));
     }

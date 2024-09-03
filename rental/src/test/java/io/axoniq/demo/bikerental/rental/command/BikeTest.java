@@ -10,14 +10,11 @@ import io.axoniq.demo.bikerental.coreapi.rental.RejectRequestCommand;
 import io.axoniq.demo.bikerental.coreapi.rental.RequestBikeCommand;
 import io.axoniq.demo.bikerental.coreapi.rental.RequestRejectedEvent;
 import io.axoniq.demo.bikerental.coreapi.rental.ReturnBikeCommand;
+import org.axonframework.commandhandling.CommandExecutionException;
 import org.axonframework.test.aggregate.AggregateTestFixture;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-import static org.axonframework.test.matchers.Matchers.andNoMore;
-import static org.axonframework.test.matchers.Matchers.exactSequenceOf;
-import static org.axonframework.test.matchers.Matchers.matches;
-import static org.axonframework.test.matchers.Matchers.messageWithPayload;
+import static org.axonframework.test.matchers.Matchers.*;
 
 class BikeTest {
 
@@ -53,8 +50,7 @@ class BikeTest {
                       new BikeRequestedEvent("bikeId", "rider", "rentalId"))
                .when(new RequestBikeCommand("bikeId", "rider"))
                .expectNoEvents()
-               .expectException(IllegalStateException.class);
-
+               .expectException(CommandExecutionException.class);
     }
 
     @Test
@@ -107,7 +103,7 @@ class BikeTest {
                       new BikeInUseEvent("bikeId", "rider"))
                .when(new RequestBikeCommand("bikeId", "otherRenter"))
                .expectNoEvents()
-               .expectException(IllegalStateException.class);
+               .expectException(CommandExecutionException.class);
     }
 
     @Test
@@ -122,8 +118,6 @@ class BikeTest {
                                                           e.getBikeId().equals("bikeId")
                                                                   && e.getRenter().equals("newRider"))),
                        andNoMore()));
-
-
     }
 
     @Test
@@ -137,7 +131,5 @@ class BikeTest {
                                                           e.getBikeId().equals("bikeId")
                                                                   && e.getRenter().equals("newRider"))),
                        andNoMore()));
-
-
     }
 }
