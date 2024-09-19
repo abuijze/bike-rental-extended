@@ -80,7 +80,7 @@ const rentalsParams = ref({
             loops : "64",
             concurrency : "8",
             abandonPaymentFactor: 0,
-            delay: 1000
+            delay: 100
         })
 
 const store = useBikeStore()
