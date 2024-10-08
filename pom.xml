@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.0</version>
+        <version>3.3.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>io.axoniq.demo.bikerental</groupId>
@@ -35,7 +35,7 @@
             <dependency>
                 <groupId>org.axonframework</groupId>
                 <artifactId>axon-bom</artifactId>
-                <version>4.10.0</version>
+                <version>4.10.2</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -54,7 +54,7 @@
 		<dependency>
 			<groupId>io.axoniq.console</groupId>
 			<artifactId>console-framework-client-spring-boot-starter</artifactId>
-			<version>1.7.2</version>
+			<version>1.8.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.axonframework</groupId>
