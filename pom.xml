@@ -35,7 +35,7 @@
             <dependency>
                 <groupId>org.axonframework</groupId>
                 <artifactId>axon-bom</artifactId>
-                <version>4.10.2</version>
+                <version>4.11.0 </version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -81,4 +81,37 @@
 		</dependency>
 	</dependencies>
 
+    <profiles>
+        <profile>
+            <id>native</id>
+			<dependencies>
+				<dependency>
+					<groupId>org.axonframework.extensions.spring-aot</groupId>
+					<artifactId>axon-spring-aot</artifactId>
+				</dependency>
+			</dependencies>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-maven-plugin</artifactId>
+                        </plugin>
+                        <plugin>
+                            <groupId>org.graalvm.buildtools</groupId>
+                            <artifactId>native-maven-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <id>build-image</id>
+                                    <goals>
+                                        <goal>compile-no-fork</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
 </project>
