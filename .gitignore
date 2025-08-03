@@ -33,3 +33,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Frontend build and dependency directories
+/frontend/.output/
+/frontend/.nuxt/
+/frontend/node_modules/
+/frontend/dist/
+/frontend/node/
+/frontend/nuxt.log

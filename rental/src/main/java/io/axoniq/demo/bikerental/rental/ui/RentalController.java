@@ -2,23 +2,14 @@ package io.axoniq.demo.bikerental.rental.ui;
 
 import io.axoniq.demo.bikerental.coreapi.payment.ConfirmPaymentCommand;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentStatus;
-import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
-import io.axoniq.demo.bikerental.coreapi.rental.RegisterBikeCommand;
-import io.axoniq.demo.bikerental.coreapi.rental.RentalStatus;
-import io.axoniq.demo.bikerental.coreapi.rental.RequestBikeCommand;
-import io.axoniq.demo.bikerental.coreapi.rental.ReturnBikeCommand;
+import io.axoniq.demo.bikerental.coreapi.payment.RejectPaymentCommand;
+import io.axoniq.demo.bikerental.coreapi.rental.*;
 import org.axonframework.commandhandling.gateway.CommandGateway;
 import org.axonframework.messaging.responsetypes.ResponseTypes;
 import org.axonframework.queryhandling.QueryGateway;
 import org.axonframework.queryhandling.SubscriptionQueryResult;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -140,6 +131,11 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
     @PostMapping("acceptPayment")
     public CompletableFuture<Void> acceptPayment(@RequestParam("id") String paymentId) {
         return commandGateway.send(new ConfirmPaymentCommand(paymentId));
+    }
+
+    @PostMapping("rejectPayment")
+    public CompletableFuture<Void> rejectPayment(@RequestParam("id") String paymentId) {
+        return commandGateway.send(new RejectPaymentCommand(paymentId));
     }
 
 
