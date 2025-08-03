@@ -112,7 +112,7 @@ export const useBikeStore = defineStore('bikes', {
     
     async acceptPayment(paymentRef: string) {
       const config = useRuntimeConfig()
-      const paymentServiceUrl = 'http://localhost:8081' // Payment service runs on port 8081
+      const paymentServiceUrl = config.public.paymentServiceBase
       
       // First find the payment ID using the reference
       const findResponse = await fetch(`${paymentServiceUrl}/findPayment?reference=${paymentRef}`)
@@ -132,7 +132,7 @@ export const useBikeStore = defineStore('bikes', {
     
     async refusePayment(paymentRef: string) {
       const config = useRuntimeConfig()
-      const paymentServiceUrl = 'http://localhost:8081' // Payment service runs on port 8081
+      const paymentServiceUrl = config.public.paymentServiceBase
       
       // First find the payment ID using the reference
       const findResponse = await fetch(`${paymentServiceUrl}/findPayment?reference=${paymentRef}`)
