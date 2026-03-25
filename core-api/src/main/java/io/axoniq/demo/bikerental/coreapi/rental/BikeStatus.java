@@ -2,7 +2,9 @@ package io.axoniq.demo.bikerental.coreapi.rental;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import org.axonframework.messaging.queryhandling.annotation.QueryResponse;
 
+@QueryResponse
 @Entity
 public class BikeStatus {
 

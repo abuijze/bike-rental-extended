@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.4</version>
+        <version>3.5.7</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>io.axoniq.demo.bikerental</groupId>
@@ -19,46 +19,26 @@
 		<module>payment</module>
 		<module>rental</module>
 		<module>core-api</module>
-        <module>microservices/rental-ui</module>
-		<module>microservices/rental-command</module>
-		<module>microservices/rental-query</module>
-		<module>microservices/rental-payment</module>
+<!--        <module>microservices/rental-ui</module>-->
+<!--		<module>microservices/rental-command</module>-->
+<!--		<module>microservices/rental-query</module>-->
+<!--		<module>microservices/rental-payment</module>-->
         <module>frontend</module>
     </modules>
 
     <properties>
-        <java.version>17</java.version>
+        <java.version>21</java.version>
     </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.axonframework</groupId>
-                <artifactId>axon-bom</artifactId>
-                <version>4.11.0 </version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
 	<dependencies>
-		<dependency>
+        <dependency>
+            <groupId>org.axonframework.extensions.spring</groupId>
+            <artifactId>axon-spring-boot-starter</artifactId>
+            <version>5.0.4</version>
+        </dependency>
+        <dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.axonframework</groupId>
-			<artifactId>axon-spring-boot-starter</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>io.axoniq.console</groupId>
-			<artifactId>console-framework-client-spring-boot-starter</artifactId>
-			<version>1.8.0</version>
-		</dependency>
-		<dependency>
-			<groupId>org.axonframework</groupId>
-			<artifactId>axon-micrometer</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.module</groupId>
@@ -78,6 +58,7 @@
 			<groupId>org.axonframework</groupId>
 			<artifactId>axon-test</artifactId>
 			<scope>test</scope>
+            <version>5.0.4</version>
 		</dependency>
 	</dependencies>
 

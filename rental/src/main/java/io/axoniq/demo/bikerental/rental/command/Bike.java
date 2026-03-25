@@ -1,103 +1,71 @@
 package io.axoniq.demo.bikerental.rental.command;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.axoniq.demo.bikerental.coreapi.rental.ApproveRequestCommand;
-import io.axoniq.demo.bikerental.coreapi.rental.BikeInUseEvent;
-import io.axoniq.demo.bikerental.coreapi.rental.BikeRegisteredEvent;
-import io.axoniq.demo.bikerental.coreapi.rental.BikeRequestedEvent;
-import io.axoniq.demo.bikerental.coreapi.rental.BikeReturnedEvent;
-import io.axoniq.demo.bikerental.coreapi.rental.RegisterBikeCommand;
-import io.axoniq.demo.bikerental.coreapi.rental.RejectRequestCommand;
-import io.axoniq.demo.bikerental.coreapi.rental.RequestBikeCommand;
-import io.axoniq.demo.bikerental.coreapi.rental.RequestRejectedEvent;
-import io.axoniq.demo.bikerental.coreapi.rental.ReturnBikeCommand;
-import org.axonframework.commandhandling.CommandExecutionException;
-import org.axonframework.commandhandling.CommandHandler;
-import org.axonframework.eventsourcing.EventSourcingHandler;
-import org.axonframework.modelling.command.AggregateCreationPolicy;
-import org.axonframework.modelling.command.AggregateIdentifier;
-import org.axonframework.modelling.command.CreationPolicy;
-import org.axonframework.spring.stereotype.Aggregate;
+import io.axoniq.demo.bikerental.coreapi.rental.*;
+import org.axonframework.eventsourcing.annotation.EventSourcingHandler;
+import org.axonframework.eventsourcing.annotation.reflection.EntityCreator;
+import org.axonframework.extension.spring.stereotype.EventSourced;
+import org.axonframework.messaging.commandhandling.CommandExecutionException;
+import org.axonframework.messaging.commandhandling.annotation.CommandHandler;
+import org.axonframework.messaging.eventhandling.gateway.EventAppender;
 
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.axonframework.modelling.command.AggregateLifecycle.apply;
-
-@Aggregate(snapshotTriggerDefinition = "bikeSnapshotDefinition")
+@EventSourced(tagKey = "bikeId")
 public class Bike {
 
-    @AggregateIdentifier
-    private String bikeId;
+    private final String bikeId;
 
     private boolean isAvailable;
     private String reservedBy;
     private boolean reservationConfirmed;
 
-    /* We need to explicitly declare this one to support the constructor for Jackson */
-    public Bike() {
-    }
-
-    /* Constructor used to reconstruct the aggregate from a JSON based snapshot with Jackson */
-    @JsonCreator
-    public Bike(@JsonProperty("bikeId") String bikeId,
-                @JsonProperty("available") boolean isAvailable,
-                @JsonProperty("reservedBy") String reservedBy,
-                @JsonProperty("reservationConfirmed") boolean reservationConfirmed) {
-        this.bikeId = bikeId;
-        this.isAvailable = isAvailable;
-        this.reservedBy = reservedBy;
-        this.reservationConfirmed = reservationConfirmed;
+    @EntityCreator
+    public Bike(BikeRegisteredEvent event) {
+        this.bikeId = event.getBikeId();
+        this.isAvailable = true;
     }
 
     @CommandHandler
-    @CreationPolicy(AggregateCreationPolicy.ALWAYS)
-    public void handle(RegisterBikeCommand command) {
-        apply(new BikeRegisteredEvent(command.getBikeId(), command.getBikeType(), command.getLocation()));
+    public static void handle(RegisterBikeCommand command, EventAppender appender) {
+        appender.append(new BikeRegisteredEvent(command.getBikeId(), command.getBikeType(), command.getLocation()));
     }
 
     @CommandHandler
-    public String handle(RequestBikeCommand command) {
+    public String handle(RequestBikeCommand command, EventAppender appender) {
         if (!this.isAvailable) {
             throw new CommandExecutionException("Bike is already rented", null, "Already rented");
         }
         String rentalReference = UUID.randomUUID().toString();
-        apply(new BikeRequestedEvent(command.getBikeId(), command.getRenter(), rentalReference));
+        appender.append(new BikeRequestedEvent(command.getBikeId(), command.getRenter(), rentalReference));
 
         return rentalReference;
     }
 
     @CommandHandler
-    public void handle(ApproveRequestCommand command) {
+    public void handle(ApproveRequestCommand command, EventAppender appender) {
         if (!Objects.equals(reservedBy, command.getRenter())
                 || reservationConfirmed) {
             return;
         }
-        apply(new BikeInUseEvent(command.getBikeId(), command.getRenter()));
+        appender.append(new BikeInUseEvent(command.getBikeId(), command.getRenter()));
     }
 
     @CommandHandler
-    public void handle(RejectRequestCommand command) {
+    public void handle(RejectRequestCommand command, EventAppender appender) {
         if (!Objects.equals(reservedBy, command.getRenter())
                 || reservationConfirmed) {
             return;
         }
-        apply(new RequestRejectedEvent(command.getBikeId()));
+        appender.append(new RequestRejectedEvent(command.getBikeId()));
     }
 
     @CommandHandler
-    public void handle(ReturnBikeCommand command) {
+    public void handle(ReturnBikeCommand command, EventAppender appender) {
         if (this.isAvailable) {
             throw new IllegalStateException("Bike was already returned");
         }
-        apply(new BikeReturnedEvent(command.getBikeId(), command.getLocation()));
-    }
-
-    @EventSourcingHandler
-    protected void handle(BikeRegisteredEvent event) {
-        this.bikeId = event.getBikeId();
-        this.isAvailable = true;
+        appender.append(new BikeReturnedEvent(command.getBikeId(), command.getLocation()));
     }
 
     @EventSourcingHandler

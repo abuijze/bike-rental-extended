@@ -1,0 +1,8 @@
+package io.axoniq.demo.bikerental.payment;
+
+
+import org.axonframework.messaging.queryhandling.annotation.Query;
+
+@Query(name = "getStatus")
+public record GetStatusQuery(String paymentId) {
+}

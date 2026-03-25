@@ -2,8 +2,10 @@ package io.axoniq.demo.bikerental.coreapi.payment;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import org.axonframework.messaging.queryhandling.annotation.QueryResponse;
 
 @Entity
+@QueryResponse
 public class PaymentStatus {
     @Id
     private String id;
@@ -15,11 +17,11 @@ public class PaymentStatus {
     public PaymentStatus() {
     }
 
-    public PaymentStatus(String id, int amount, String reference) {
+    public PaymentStatus(String id, int amount, String reference, Status status) {
         this.id = id;
         this.amount = amount;
         this.reference = reference;
-        this.status = Status.PENDING;
+        this.status = status;
     }
 
     public String getId() {
@@ -34,12 +36,16 @@ public class PaymentStatus {
         return amount;
     }
 
-    public void setStatus(Status status) {
-        this.status = status;
+    public String getReference() {
+        return reference;
     }
 
     public enum Status {
 
         PENDING, APPROVED, REJECTED
+    }
+
+    public PaymentStatus withStatus(Status status) {
+        return new PaymentStatus(id, amount, reference, status);
     }
 }

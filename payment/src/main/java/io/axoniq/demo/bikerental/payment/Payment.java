@@ -1,55 +1,39 @@
 package io.axoniq.demo.bikerental.payment;
 
-import io.axoniq.demo.bikerental.coreapi.payment.ConfirmPaymentCommand;
-import io.axoniq.demo.bikerental.coreapi.payment.PaymentConfirmedEvent;
-import io.axoniq.demo.bikerental.coreapi.payment.PaymentPreparedEvent;
-import io.axoniq.demo.bikerental.coreapi.payment.PaymentRejectedEvent;
-import io.axoniq.demo.bikerental.coreapi.payment.PreparePaymentCommand;
-import io.axoniq.demo.bikerental.coreapi.payment.RejectPaymentCommand;
-import org.axonframework.commandhandling.CommandHandler;
-import org.axonframework.eventsourcing.EventSourcingHandler;
-import org.axonframework.modelling.command.AggregateIdentifier;
-import org.axonframework.spring.stereotype.Aggregate;
+import io.axoniq.demo.bikerental.coreapi.payment.*;
+import org.axonframework.eventsourcing.annotation.EventSourcingHandler;
+import org.axonframework.eventsourcing.annotation.reflection.EntityCreator;
+import org.axonframework.extension.spring.stereotype.EventSourced;
+import org.axonframework.messaging.commandhandling.annotation.CommandHandler;
+import org.axonframework.messaging.eventhandling.gateway.EventAppender;
 
-import java.util.UUID;
-
-import static org.axonframework.modelling.command.AggregateLifecycle.apply;
-
-@Aggregate
+@EventSourced
 public class Payment {
-
-    @AggregateIdentifier
-    private String id;
 
     private boolean closed;
     private String paymentReference;
 
-    public Payment() {
+    @EntityCreator
+    public Payment(PaymentPreparedEvent event) {
+        this.paymentReference = event.getPaymentReference();
     }
 
     @CommandHandler
-    public Payment(PreparePaymentCommand command) {
-        String paymentId = UUID.randomUUID().toString();
-        apply(new PaymentPreparedEvent(paymentId, command.getAmount(), command.getPaymentReference()));
-    }
-
-    @CommandHandler
-    public void handle(ConfirmPaymentCommand command) {
+    public void handle(ConfirmPaymentCommand command, EventAppender appender) {
         if (!closed) {
-            apply(new PaymentConfirmedEvent(command.getPaymentId(), paymentReference));
+            appender.append(new PaymentConfirmedEvent(command.getPaymentId(), paymentReference));
         }
     }
 
     @CommandHandler
-    public void handle(RejectPaymentCommand command) {
+    public void handle(RejectPaymentCommand command, EventAppender appender) {
         if (!closed) {
-            apply(new PaymentRejectedEvent(command.getPaymentId(), paymentReference));
+            appender.append(new PaymentRejectedEvent(command.getPaymentId(), paymentReference));
         }
     }
 
     @EventSourcingHandler
     protected void on(PaymentPreparedEvent event) {
-        this.id = event.getPaymentId();
         this.paymentReference = event.getPaymentReference();
     }
 
