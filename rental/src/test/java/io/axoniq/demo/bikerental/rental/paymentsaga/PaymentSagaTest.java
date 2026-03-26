@@ -1,28 +1,74 @@
 package io.axoniq.demo.bikerental.rental.paymentsaga;
 
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentConfirmedEvent;
+import io.axoniq.demo.bikerental.coreapi.payment.PaymentRejectedEvent;
+import io.axoniq.demo.bikerental.coreapi.payment.PreparePaymentCommand;
+import io.axoniq.demo.bikerental.coreapi.payment.RejectPaymentCommand;
 import io.axoniq.demo.bikerental.coreapi.rental.ApproveRequestCommand;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeRequestedEvent;
+import io.axoniq.demo.bikerental.coreapi.rental.RejectRequestCommand;
+import io.axoniq.demo.bikerental.coreapi.rental.RequestRejectedEvent;
+import org.axonframework.messaging.commandhandling.gateway.CommandGateway;
+import org.axonframework.messaging.core.configuration.MessagingConfigurer;
 import org.axonframework.test.fixture.AxonTestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 class PaymentSagaTest {
 
+    private PaymentStateRepository repository;
+    private PaymentSaga paymentSaga;
     private AxonTestFixture fixture;
+    private Map<String, PaymentState> stateStore;
 
     @BeforeEach
     void setUp() {
-//        AxonTestFixture.with()
-//        fixture = new SagaTestFixture(PaymentSaga.class);
+        stateStore = new HashMap<>();
+        repository = mock(PaymentStateRepository.class);
+
+        when(repository.save(any(PaymentState.class))).thenAnswer(inv -> {
+            PaymentState state = inv.getArgument(0);
+            stateStore.put(state.paymentReference(), state);
+            return state;
+        });
+        when(repository.findById(anyString())).thenAnswer(inv ->
+                Optional.ofNullable(stateStore.get((String) inv.getArgument(0))));
+
+        fixture = AxonTestFixture.with(
+                MessagingConfigurer.create()
+                                   .componentRegistry(cr -> cr.registerComponent(PaymentStateRepository.class,
+                                                                                  cfg -> repository))
+                                   .eventProcessing(ep -> ep.subscribing(sp -> sp.defaultProcessor(
+                                           "payment-saga",
+                                           c -> c.autodetected(cfg -> {
+                                               paymentSaga = new PaymentSaga(
+                                                       cfg.getComponent(CommandGateway.class),
+                                                       cfg.getComponent(PaymentStateRepository.class)
+                                               );
+                                               return paymentSaga;
+                                           })
+                                   ))),
+                AxonTestFixture.Customization::disableAxonServer
+        );
     }
 
     @Test
     void shouldStartSagaOnBikeRequested() {
-//        fixture.givenNoPriorActivity()
-//               .whenPublishingA(new BikeRequestedEvent("bikeId", "renter", "payRef"))
-//               .expectDispatchedCommands(new PreparePaymentCommand(10, "payRef"))
-//               .expectActiveSagas(1);
+        fixture.given()
+               .noPriorActivity()
+               .when()
+               .event(new BikeRequestedEvent("bikeId", "renter", "payRef"))
+               .then()
+               .commands(new PreparePaymentCommand(10, "payRef"));
     }
 
     @Test
@@ -37,26 +83,37 @@ class PaymentSagaTest {
 
     @Test
     void shouldRejectRequestOnPaymentRejected() {
-//        fixture.givenAPublished(new BikeRequestedEvent("bikeId", "renter", "rentalRef"))
-//               .whenPublishingA(new PaymentRejectedEvent("paymentId", "rentalRef"))
-//               .expectDispatchedCommands(new RejectRequestCommand("bikeId", "renter"));
+        fixture.given()
+               .events(new BikeRequestedEvent("bikeId", "renter", "rentalRef"))
+               .when()
+               .event(new PaymentRejectedEvent("paymentId", "rentalRef"))
+               .then()
+               .commands(new RejectRequestCommand("bikeId", "renter"));
     }
 
     @Test
     void shouldEndSagaWhenRequestIsRejected() {
-//        fixture.givenAPublished(new BikeRequestedEvent("bikeId", "renter", "rentalRef"))
-//                .whenPublishingA(new RequestRejectedEvent("bikeId"))
-//                .expectActiveSagas(0);
-
+        fixture.given()
+               .events(new BikeRequestedEvent("bikeId", "renter", "rentalRef"))
+               .when()
+               .event(new RequestRejectedEvent("bikeId"))
+               .then()
+               .noCommands();
     }
 
     @Test
     void shouldRejectPaymentWhenNotConfirmedIn30Seconds() {
-//        fixture.givenAPublished(new BikeRequestedEvent("bikeId", "renter", "rentalRef"))
-//                .andThenAPublished(new PaymentPreparedEvent("paymentId", 10, "rentalRef"))
-//                .whenTimeElapses(Duration.ofSeconds(30))
-//                .expectDispatchedCommands(new RejectPaymentCommand("paymentId"));
+        var preparedState = new PaymentState("rentalRef", "bikeId", "renter");
+        preparedState.prepared("paymentId");
+        when(repository.findAllByTimestampLessThanAndStatusIn(anyLong(), any(PaymentState.Status[].class)))
+                .thenReturn(List.of(preparedState));
 
+        fixture.given()
+               .noPriorActivity()
+               .when()
+               .nothing()
+               .then()
+               .expect(config -> paymentSaga.cancelLatePayments())
+               .commands(new RejectPaymentCommand("paymentId"));
     }
-
 }
