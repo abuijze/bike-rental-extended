@@ -130,6 +130,18 @@ export const useBikeStore = defineStore('bikes', {
       }
     },
     
+    async revokeRequest(bikeId: string, renter: string) {
+      const config = useRuntimeConfig()
+      const url = config.public.apiBase
+
+      const response = await fetch(`${url}/revokeRequest?bikeId=${bikeId}&renter=${encodeURIComponent(renter)}`, {
+        method: "POST"
+      })
+      if (!response.ok) {
+        throw new Error('Failed to revoke request')
+      }
+    },
+
     async refusePayment(paymentRef: string) {
       const config = useRuntimeConfig()
       const paymentServiceUrl = config.public.paymentServiceBase

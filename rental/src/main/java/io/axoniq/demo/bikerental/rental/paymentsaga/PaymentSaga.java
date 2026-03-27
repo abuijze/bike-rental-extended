@@ -28,14 +28,14 @@ public class PaymentSaga {
 
     @EventHandler
     public void on(BikeRequestedEvent event, CommandDispatcher commandDispatcher) {
-        repository.save(new PaymentState(event.getRentalReference(), event.getBikeId(), event.getRenter()));
-        commandDispatcher.send(new PreparePaymentCommand(10, event.getRentalReference()));
+        repository.save(new PaymentState(event.rentalReference(), event.bikeId(), event.renter()));
+        commandDispatcher.send(new PreparePaymentCommand(10, event.rentalReference()));
     }
 
     @EventHandler
     public void on(PaymentConfirmedEvent event, CommandDispatcher commandDispatcher) {
         // we approve the bike request
-        repository.findById(event.getPaymentReference())
+        repository.findById(event.paymentReference())
                   .ifPresent(status -> {
                       status.setStatus(PaymentState.Status.CONFIRMED);
                       commandDispatcher.send(new ApproveRequestCommand(status.bikeId(), status.renter()));
@@ -44,7 +44,7 @@ public class PaymentSaga {
 
     @EventHandler
     public void on(PaymentRejectedEvent event, CommandDispatcher commandDispatcher) {
-        repository.findById(event.getPaymentReference())
+        repository.findById(event.paymentReference())
                   .ifPresent(state -> {
                       state.setStatus(PaymentState.Status.REJECTED);
                       commandDispatcher.send(new RejectRequestCommand(state.bikeId(), state.renter()));
@@ -60,9 +60,9 @@ public class PaymentSaga {
 
     @EventHandler
     public void on(PaymentPreparedEvent event) {
-        repository.findById(event.getPaymentReference())
+        repository.findById(event.paymentReference())
                   .ifPresent(state -> {
-                      state.prepared(event.getPaymentId());
+                      state.prepared(event.paymentId());
                   });
     }
 }

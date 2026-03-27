@@ -11,7 +11,7 @@ import org.axonframework.messaging.eventhandling.gateway.EventAppender;
 import java.util.Objects;
 import java.util.UUID;
 
-@EventSourced(tagKey = "bikeId")
+@EventSourced(tagKey = "Bike")
 public class Bike {
 
     private final String bikeId;
@@ -22,13 +22,13 @@ public class Bike {
 
     @EntityCreator
     public Bike(BikeRegisteredEvent event) {
-        this.bikeId = event.getBikeId();
+        this.bikeId = event.bikeId();
         this.isAvailable = true;
     }
 
     @CommandHandler
     public static void handle(RegisterBikeCommand command, EventAppender appender) {
-        appender.append(new BikeRegisteredEvent(command.getBikeId(), command.getBikeType(), command.getLocation()));
+        appender.append(new BikeRegisteredEvent(command.bikeId(), command.bikeType(), command.location()));
     }
 
     @CommandHandler
@@ -37,27 +37,27 @@ public class Bike {
             throw new CommandExecutionException("Bike is already rented", null, "Already rented");
         }
         String rentalReference = UUID.randomUUID().toString();
-        appender.append(new BikeRequestedEvent(command.getBikeId(), command.getRenter(), rentalReference));
+        appender.append(new BikeRequestedEvent(command.bikeId(), command.renter(), rentalReference));
 
         return rentalReference;
     }
 
     @CommandHandler
     public void handle(ApproveRequestCommand command, EventAppender appender) {
-        if (!Objects.equals(reservedBy, command.getRenter())
+        if (!Objects.equals(reservedBy, command.renter())
                 || reservationConfirmed) {
             return;
         }
-        appender.append(new BikeInUseEvent(command.getBikeId(), command.getRenter()));
+        appender.append(new BikeInUseEvent(command.bikeId(), command.renter()));
     }
 
     @CommandHandler
     public void handle(RejectRequestCommand command, EventAppender appender) {
-        if (!Objects.equals(reservedBy, command.getRenter())
+        if (!Objects.equals(reservedBy, command.renter())
                 || reservationConfirmed) {
             return;
         }
-        appender.append(new RequestRejectedEvent(command.getBikeId()));
+        appender.append(new RequestRejectedEvent(command.bikeId()));
     }
 
     @CommandHandler
@@ -65,7 +65,7 @@ public class Bike {
         if (this.isAvailable) {
             throw new IllegalStateException("Bike was already returned");
         }
-        appender.append(new BikeReturnedEvent(command.getBikeId(), command.getLocation()));
+        appender.append(new BikeReturnedEvent(command.bikeId(), command.location()));
     }
 
     @EventSourcingHandler
@@ -77,7 +77,7 @@ public class Bike {
 
     @EventSourcingHandler
     protected void handle(BikeRequestedEvent event) {
-        this.reservedBy = event.getRenter();
+        this.reservedBy = event.renter();
         this.reservationConfirmed = false;
         this.isAvailable = false;
     }

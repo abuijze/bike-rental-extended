@@ -24,27 +24,27 @@ public class PaymentStatusProjection {
 
     @QueryHandler
     public String getPaymentId(GetPaymentIdQuery query) {
-        return paymentStatusRepository.findByReferenceAndStatus(query.getPaymentReference(), PENDING).map(PaymentStatus::getId).orElse(null);
+        return paymentStatusRepository.findByReferenceAndStatus(query.paymentReference(), PENDING).map(PaymentStatus::getId).orElse(null);
     }
 
     @QueryHandler
     public Iterable<PaymentStatus> findByStatus(GetAllPaymentsQuery query) {
-        return paymentStatusRepository.findAllByStatus(query.getPaymentStatus());
+        return paymentStatusRepository.findAllByStatus(query.paymentStatus());
     }
 
     @EventHandler
     public void handle(PaymentPreparedEvent event, QueryUpdateEmitter updateEmitter) {
-        paymentStatusRepository.save(new PaymentStatus(event.getPaymentId(), event.getAmount(), event.getPaymentReference(), PENDING));
-        updateEmitter.emit(String.class, event.getPaymentReference()::equals, event.getPaymentId());
+        paymentStatusRepository.save(new PaymentStatus(event.paymentId(), event.amount(), event.paymentReference(), PENDING));
+        updateEmitter.emit(String.class, event.paymentReference()::equals, event.paymentId());
     }
 
     @EventHandler
     public void handle(PaymentConfirmedEvent event) {
-        paymentStatusRepository.findById(event.getPaymentId()).ifPresent(s -> s.withStatus(APPROVED));
+        paymentStatusRepository.findById(event.paymentId()).ifPresent(s -> s.withStatus(APPROVED));
     }
 
     @EventHandler
     public void handle(PaymentRejectedEvent event) {
-        paymentStatusRepository.findById(event.getPaymentId()).ifPresent(s -> s.withStatus(REJECTED));
+        paymentStatusRepository.findById(event.paymentId()).ifPresent(s -> s.withStatus(REJECTED));
     }
 }

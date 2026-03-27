@@ -15,26 +15,26 @@ public class Payment {
 
     @EntityCreator
     public Payment(PaymentPreparedEvent event) {
-        this.paymentReference = event.getPaymentReference();
+        this.paymentReference = event.paymentReference();
     }
 
     @CommandHandler
     public void handle(ConfirmPaymentCommand command, EventAppender appender) {
         if (!closed) {
-            appender.append(new PaymentConfirmedEvent(command.getPaymentId(), paymentReference));
+            appender.append(new PaymentConfirmedEvent(command.paymentId(), paymentReference));
         }
     }
 
     @CommandHandler
     public void handle(RejectPaymentCommand command, EventAppender appender) {
         if (!closed) {
-            appender.append(new PaymentRejectedEvent(command.getPaymentId(), paymentReference));
+            appender.append(new PaymentRejectedEvent(command.paymentId(), paymentReference));
         }
     }
 
     @EventSourcingHandler
     protected void on(PaymentPreparedEvent event) {
-        this.paymentReference = event.getPaymentReference();
+        this.paymentReference = event.paymentReference();
     }
 
     @EventSourcingHandler

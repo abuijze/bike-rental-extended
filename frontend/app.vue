@@ -150,6 +150,16 @@
                       title="Process payment"
                     />
                     <UButton
+                      v-if="row.status === 'REQUESTED'"
+                      @click="revokeRequest(row.bikeId, row.renter)"
+                      icon="i-heroicons-x-circle"
+                      size="xs"
+                      variant="outline"
+                      color="red"
+                      :ui="{ rounded: 'rounded-full' }"
+                      title="Revoke request"
+                    />
+                    <UButton
                       v-if="row.status === 'RENTED'"
                       @click="returnBikeManual(row.bikeId)"
                       icon="i-heroicons-arrow-uturn-left"
@@ -396,6 +406,15 @@ async function requestBikeAndOpenPayment(bikeId) {
 
 async function returnBikeManual(bikeId) {
   await store.returnBikeManual(bikeId)
+}
+
+async function revokeRequest(bikeId, renter) {
+  try {
+    await store.revokeRequest(bikeId, renter)
+  } catch (error) {
+    console.error('Failed to revoke request:', error)
+    alert('Failed to revoke request: ' + error.message)
+  }
 }
 
 function openPaymentModal(bike) {

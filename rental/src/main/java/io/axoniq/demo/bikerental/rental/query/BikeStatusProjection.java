@@ -22,7 +22,7 @@ public class BikeStatusProjection {
 
     @EventHandler
     public void on(BikeRegisteredEvent event, QueryUpdateEmitter updateEmitter) {
-        var bikeStatus = new BikeStatus(event.getBikeId(), event.getBikeType(), event.getLocation());
+        var bikeStatus = new BikeStatus(event.bikeId(), event.bikeType(), event.location());
         bikeStatusRepository.save(bikeStatus);
         updateEmitter.emit(FindAll.class, q -> true, bikeStatus);
     }
@@ -36,47 +36,47 @@ public class BikeStatusProjection {
                             })
                             .ifPresent(bs -> {
                                 updateEmitter.emit(FindAll.class, q -> true, bs);
-                                updateEmitter.emit(FindOne.class, q -> Objects.equals(q.getBikeId(), event.get("bikeId")), bs);
+                                updateEmitter.emit(FindOne.class, q -> Objects.equals(q.bikeId(), event.get("bikeId")), bs);
                             });
     }
 
     @EventHandler
     public void on(BikeInUseEvent event, QueryUpdateEmitter updateEmitter) {
-        bikeStatusRepository.findById(event.getBikeId())
+        bikeStatusRepository.findById(event.bikeId())
                             .map(bs -> {
-                                bs.rentedBy(event.getRenter());
+                                bs.rentedBy(event.renter());
                                 return bs;
                             })
                             .ifPresent(bs -> {
                                 updateEmitter.emit(FindAll.class, q -> true, bs);
-                                updateEmitter.emit(FindOne.class, q -> q.getBikeId().equals(event.getBikeId()), bs);
+                                updateEmitter.emit(FindOne.class, q -> q.bikeId().equals(event.bikeId()), bs);
                             });
     }
 
     @EventHandler
     public void on(BikeReturnedEvent event, QueryUpdateEmitter updateEmitter) {
-        bikeStatusRepository.findById(event.getBikeId())
+        bikeStatusRepository.findById(event.bikeId())
                             .map(bs -> {
-                                bs.returnedAt(event.getLocation());
+                                bs.returnedAt(event.location());
                                 return bs;
                             })
                             .ifPresent(bs -> {
                                 updateEmitter.emit(FindAll.class, q -> true, bs);
-                                updateEmitter.emit(FindOne.class, q -> q.getBikeId().equals(event.getBikeId()), bs);
+                                updateEmitter.emit(FindOne.class, q -> q.bikeId().equals(event.bikeId()), bs);
                             });
 
     }
 
     @EventHandler
     public void on(RequestRejectedEvent event, QueryUpdateEmitter updateEmitter) {
-        bikeStatusRepository.findById(event.getBikeId())
+        bikeStatusRepository.findById(event.bikeId())
                             .map(bs -> {
                                 bs.returnedAt(bs.getLocation());
                                 return bs;
                             })
                             .ifPresent(bs -> {
                                 updateEmitter.emit(FindAll.class, q -> true, bs);
-                                updateEmitter.emit(FindOne.class, q -> q.getBikeId().equals(event.getBikeId()), bs);
+                                updateEmitter.emit(FindOne.class, q -> q.bikeId().equals(event.bikeId()), bs);
                             });
     }
 
@@ -87,12 +87,12 @@ public class BikeStatusProjection {
 
     @QueryHandler
     public Iterable<BikeStatus> findAvailable(FindAvailable query) {
-        return bikeStatusRepository.findAllByBikeTypeAndStatus(query.getBikeType(), RentalStatus.AVAILABLE);
+        return bikeStatusRepository.findAllByBikeTypeAndStatus(query.bikeType(), RentalStatus.AVAILABLE);
     }
 
     @QueryHandler
     public BikeStatus findOne(FindOne query) {
-        return bikeStatusRepository.findById(query.getBikeId()).orElse(null);
+        return bikeStatusRepository.findById(query.bikeId()).orElse(null);
     }
 
 public static class BikeRequestedEventV2 {

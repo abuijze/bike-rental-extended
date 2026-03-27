@@ -38,8 +38,8 @@ class BikeTest {
                 .then()
                .resultMessageSatisfies(i -> assertThat(i).isInstanceOf(String.class))
                .eventsMatch(l -> l.size() == 1 && l.getFirst().payloadAs(BikeRequestedEvent.class)
-                                                   .getBikeId().equals("bikeId")
-                                                                  && l.getFirst().payloadAs(BikeRequestedEvent.class).getRenter().equals("rider"));
+                                                   .bikeId().equals("bikeId")
+                                                                  && l.getFirst().payloadAs(BikeRequestedEvent.class).renter().equals("rider"));
     }
 
     @Test
@@ -124,8 +124,8 @@ class BikeTest {
                .then()
                .success()
                .eventsMatch(l -> l.size() == 1
-                               && l.getFirst().payloadAs(BikeRequestedEvent.class).getBikeId().equals("bikeId")
-                               && l.getFirst().payloadAs(BikeRequestedEvent.class).getRenter().equals("newRider"));
+                               && l.getFirst().payloadAs(BikeRequestedEvent.class).bikeId().equals("bikeId")
+                               && l.getFirst().payloadAs(BikeRequestedEvent.class).renter().equals("newRider"));
     }
 
     @Test
@@ -137,7 +137,7 @@ class BikeTest {
                .then()
                .success()
                .eventsMatch(l -> l.size() == 1
-                               && l.getFirst().payloadAs(BikeRequestedEvent.class).getBikeId().equals("bikeId")
-                               && l.getFirst().payloadAs(BikeRequestedEvent.class).getRenter().equals("newRider"));
+                               && l.getFirst().payloadAs(BikeRequestedEvent.class).bikeId().equals("bikeId")
+                               && l.getFirst().payloadAs(BikeRequestedEvent.class).renter().equals("newRider"));
     }
 }

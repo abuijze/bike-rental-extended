@@ -113,6 +113,12 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
                              .resultAs(String.class);
     }
 
+    @PostMapping("/revokeRequest")
+    public CompletableFuture<Void> revokeRequest(@RequestParam("bikeId") String bikeId,
+                                                 @RequestParam("renter") String renter) {
+        return commandGateway.send(new RejectRequestCommand(bikeId, renter), Void.class);
+    }
+
     /*
     @GetMapping("findPayment")
     public Mono<String> getPaymentId(@RequestParam("reference") String paymentRef) {

@@ -14,7 +14,7 @@ public class PaymentCommandHandler {
     @CommandHandler
     public static String handle(PreparePaymentCommand command, EventAppender appender) {
         String paymentId = UUID.randomUUID().toString();
-        appender.append(new PaymentPreparedEvent(paymentId, command.getAmount(), command.getPaymentReference()));
+        appender.append(new PaymentPreparedEvent(paymentId, command.amount(), command.paymentReference()));
         return paymentId;
     }
 }
