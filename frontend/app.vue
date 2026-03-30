@@ -341,10 +341,10 @@ const newBikeParams = ref({
 
 const rentalsParams = ref({
   bikeType: "mountainbike",
-  loops: "64",
-  concurrency: "8",
+  loops: "16",
+  concurrency: "4",
   abandonPaymentFactor: 0,
-  delay: 100
+  delay: 500
 })
 
 const columns = [

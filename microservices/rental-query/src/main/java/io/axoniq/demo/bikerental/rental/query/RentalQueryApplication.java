@@ -1,9 +1,7 @@
 package io.axoniq.demo.bikerental.rental.query;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
-import org.axonframework.eventhandling.processors.streaming.token.store.jpa.TokenEntry;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.axonframework.messaging.eventhandling.processing.streaming.token.store.jpa.TokenEntry;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -22,12 +20,7 @@ public class RentalQueryApplication {
 
     @Bean(destroyMethod = "shutdown")
     public ScheduledExecutorService workerExecutorService() {
-        return Executors.newScheduledThreadPool(2);
-    }
-
-    @Autowired
-    public void configureSerializers(ObjectMapper objectMapper) {
-        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);
+        return Executors.newScheduledThreadPool(4);
     }
 
 }

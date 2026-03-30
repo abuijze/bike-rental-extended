@@ -19,10 +19,10 @@
 		<module>payment</module>
 		<module>rental</module>
 		<module>core-api</module>
-<!--        <module>microservices/rental-ui</module>-->
-<!--		<module>microservices/rental-command</module>-->
-<!--		<module>microservices/rental-query</module>-->
-<!--		<module>microservices/rental-payment</module>-->
+        <module>microservices/rental-ui</module>
+		<module>microservices/rental-command</module>
+		<module>microservices/rental-query</module>
+		<module>microservices/rental-payment</module>
         <module>frontend</module>
     </modules>
 
@@ -54,7 +54,7 @@
 			<groupId>org.axonframework</groupId>
 			<artifactId>axon-test</artifactId>
 			<scope>test</scope>
-            <version>5.0.3</version>
+            <version>5.0.4</version>
 		</dependency>
 	</dependencies>
 
