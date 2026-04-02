@@ -14,6 +14,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -119,35 +120,6 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
         return commandGateway.send(new RejectRequestCommand(bikeId, renter), Void.class);
     }
 
-    /*
-    @GetMapping("findPayment")
-    public Mono<String> getPaymentId(@RequestParam("reference") String paymentRef) {
-        SubscriptionQueryResult<String, String> queryResult = queryGateway.subscriptionQuery("getPaymentId",
-                                                                                             paymentRef,
-                                                                                             String.class,
-                                                                                             String.class);
-        return queryResult.initialResult().concatWith(queryResult.updates())
-                          .filter(Objects::nonNull)
-                          .next();
-    }
-
-    @GetMapping("pendingPayments")
-    public CompletableFuture<PaymentStatus> getPendingPayments() {
-        return queryGateway.query("getAllPayments", PaymentStatus.Status.PENDING, PaymentStatus.class);
-    }
-
-    @PostMapping("acceptPayment")
-    public CompletableFuture<Void> acceptPayment(@RequestParam("id") String paymentId) {
-        return commandGateway.send(new ConfirmPaymentCommand(paymentId));
-    }
-
-    @PostMapping("rejectPayment")
-    public CompletableFuture<Void> rejectPayment(@RequestParam("id") String paymentId) {
-        return commandGateway.send(new RejectPaymentCommand(paymentId));
-    }
-*/
-
-
     @GetMapping(value = "watch", produces = "text/event-stream")
     public Flux<String> watchAll() {
         return Flux.from(queryGateway.subscriptionQuery(
@@ -163,7 +135,6 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
                            BikeStatus.class))
                    .map(bs -> bs.getBikeId() + " -> " + bs.description());
     }
-
 
     @PostMapping(value = "/generateRentals")
     public Flux<String> generateData(@RequestParam(value = "bikeType") String bikeType,
@@ -199,7 +170,7 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
                 .thenCompose(bikeId -> commandGateway.send(new RequestBikeCommand(bikeId, renter))
                                                      .resultAs(String.class)
                                                      .thenComposeAsync(paymentRef -> executePayment(bikeId,
-                                                                                                    (String) paymentRef,
+                                                                                                    paymentRef,
                                                                                                     abandonPaymentFactor),
                                                                        CompletableFuture.delayedExecutor(randomDelay(
                                                                                delay), TimeUnit.MILLISECONDS))
@@ -248,7 +219,8 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
                           .next()
                    .flatMap(paymentId -> Mono.fromFuture(commandGateway.send(new ConfirmPaymentCommand(paymentId)).getResultMessage()))
                           .map(o -> bikeId)
-                          .toFuture();
+                   .timeout(Duration.ofSeconds(5))
+                   .toFuture();
     }
 
     private String randomRenter() {

@@ -6,6 +6,8 @@ import org.axonframework.messaging.queryhandling.QueryUpdateEmitter;
 import org.axonframework.messaging.queryhandling.annotation.QueryHandler;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 import static io.axoniq.demo.bikerental.coreapi.payment.PaymentStatus.Status.*;
 
 @Component
@@ -35,7 +37,9 @@ public class PaymentStatusProjection {
     @EventHandler
     public void handle(PaymentPreparedEvent event, QueryUpdateEmitter updateEmitter) {
         paymentStatusRepository.save(new PaymentStatus(event.paymentId(), event.amount(), event.paymentReference(), PENDING));
-        updateEmitter.emit(String.class, event.paymentReference()::equals, event.paymentId());
+        updateEmitter.emit(GetPaymentIdQuery.class,
+                           q -> Objects.equals(event.paymentReference(), q.paymentReference()),
+                           event.paymentId());
     }
 
     @EventHandler
