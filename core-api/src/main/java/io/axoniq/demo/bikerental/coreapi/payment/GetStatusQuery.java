@@ -1,4 +1,4 @@
-package io.axoniq.demo.bikerental.payment;
+package io.axoniq.demo.bikerental.coreapi.payment;
 
 
 import org.axonframework.messaging.queryhandling.annotation.Query;
