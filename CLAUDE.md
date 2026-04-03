@@ -7,7 +7,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Java/Maven Commands
 - **Build entire project**: `mvn package` or `./mvnw package`
 - **Run tests**: `mvn test` or `./mvnw test`
-- **Native compilation**: `mvn package -Pnative` or `./mvnw package -Pnative`
 - **Run individual Spring Boot applications**:
   - Rental service: Run `RentalApplication` class in `rental/src/main/java/io/axoniq/demo/bikerental/rental/RentalApplication.java`
   - Payment service: Run `PaymentApplication` class in `payment/src/main/java/io/axoniq/demo/bikerental/payment/PaymentApplication.java`
@@ -28,7 +27,7 @@ This is an Axon Framework-based event-driven microservices demo implementing a b
 
 ### Core Architecture Components
 
-**Event-Driven Design**: Built on Axon Framework 4.11.0 with Spring Boot 3.3.4, using event sourcing and CQRS patterns throughout.
+**Event-Driven Design**: Built on Axon Framework 5.0.4 with Spring Boot 3.5.11, using event sourcing and CQRS patterns throughout.
 
 **Bounded Contexts**:
 - **Rental Context**: Manages bike lifecycle, reservations, and returns
@@ -73,6 +72,3 @@ This is an Axon Framework-based event-driven microservices demo implementing a b
 - Build tool: **Vite** (via Nuxt)
 - Connects to backend REST APIs for bike management
 - Real-time updates via **Server-Sent Events** (EventSource)
-
-### Native Compilation Support
-GraalVM native compilation is supported via the `native` Maven profile with Axon Spring AOT extensions.

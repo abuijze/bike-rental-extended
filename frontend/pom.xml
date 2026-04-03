@@ -14,8 +14,8 @@
     <packaging>jar</packaging>
 
     <properties>
-        <node.version>v22.17.1</node.version>
-        <npm.version>10.9.2</npm.version>
+        <node.version>v24.14.1</node.version>
+        <npm.version>11.11.0</npm.version>
     </properties>
 
     <build>
