@@ -8,6 +8,8 @@ import org.axonframework.test.fixture.AxonTestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class BikeTest {
@@ -36,7 +38,7 @@ class BikeTest {
         fixture.given().event(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"))
                .when().command(new RequestBikeCommand("bikeId", "rider"))
                 .then()
-               .resultMessageSatisfies(i -> assertThat(i).isInstanceOf(String.class))
+               .resultMessagePayloadSatisfies(String.class, i -> assertThat(i).isNotBlank())
                .eventsMatch(l -> l.size() == 1 && l.getFirst().payloadAs(BikeRequestedEvent.class)
                                                    .bikeId().equals("bikeId")
                                                                   && l.getFirst().payloadAs(BikeRequestedEvent.class).renter().equals("rider"));
@@ -49,7 +51,7 @@ class BikeTest {
                .when().command(new RequestBikeCommand("bikeId", "rider"))
                .then()
                .exception(CommandExecutionException.class)
-               .eventsMatch(l -> l.isEmpty());
+               .eventsMatch(List::isEmpty);
     }
 
     @Test
@@ -79,7 +81,7 @@ class BikeTest {
                .when().command(new RejectRequestCommand("bikeId", "otherRider"))
                .then()
                .success()
-               .eventsMatch(l -> l.isEmpty());
+               .eventsMatch(List::isEmpty);
     }
 
     @Test
@@ -89,7 +91,7 @@ class BikeTest {
                .when().command(new ApproveRequestCommand("bikeId", "otherRider"))
                .then()
                .success()
-               .eventsMatch(l -> l.isEmpty());
+               .eventsMatch(List::isEmpty);
     }
 
     @Test
@@ -111,7 +113,7 @@ class BikeTest {
                .when().command(new RequestBikeCommand("bikeId", "otherRenter"))
                .then()
                .exception(CommandExecutionException.class)
-               .eventsMatch(l -> l.isEmpty());
+               .eventsMatch(List::isEmpty);
     }
 
     @Test
