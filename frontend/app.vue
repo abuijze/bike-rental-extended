@@ -2,6 +2,17 @@
   <div class="min-h-screen">
     <!-- Top-right controls -->
     <div class="fixed top-4 right-4 z-50 flex items-center gap-2">
+      <!-- Connection status indicator -->
+      <UButton
+        :icon="isConnected ? 'i-heroicons-check-circle' : 'i-heroicons-x-circle'"
+        variant="ghost"
+        size="lg"
+        square
+        :ui="{ rounded: 'rounded-full' }"
+        :class="isConnected ? 'text-green-500 dark:text-green-400' : 'text-red-500 dark:text-red-400'"
+        :title="isConnected ? 'Connected to backend' : 'Disconnected from backend'"
+      />
+
       <!-- Account component -->
       <div class="flex items-center gap-2">
         <UDropdown :items="accountItems" :popper="{ placement: 'bottom-end' }">
@@ -151,7 +162,7 @@
                     />
                     <UButton
                       v-if="row.status === 'REQUESTED'"
-                      @click="revokeRequest(row.bikeId, row.renter)"
+                      @click="revokeRequest(row.bikeId, row.rentalReference)"
                       icon="i-heroicons-x-circle"
                       size="xs"
                       variant="outline"
@@ -299,7 +310,7 @@
 <script setup>
 const store = useBikeStore()
 const userStore = useUserStore()
-const { startEventSource } = useBikeUpdates()
+const { startEventSource, isConnected } = useBikeUpdates()
 const colorMode = useColorMode()
 
 const toggleColorMode = () => {
@@ -408,9 +419,9 @@ async function returnBikeManual(bikeId) {
   await store.returnBikeManual(bikeId)
 }
 
-async function revokeRequest(bikeId, renter) {
+async function revokeRequest(bikeId, rentalReference) {
   try {
-    await store.revokeRequest(bikeId, renter)
+    await store.revokeRequest(bikeId, rentalReference)
   } catch (error) {
     console.error('Failed to revoke request:', error)
     alert('Failed to revoke request: ' + error.message)
