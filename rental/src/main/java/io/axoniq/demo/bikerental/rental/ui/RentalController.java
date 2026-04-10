@@ -109,15 +109,16 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
     }
 
     @PostMapping("/returnBike")
-    public CompletableFuture<String> returnBike(@RequestParam("bikeId") String bikeId) {
-        return commandGateway.send(new ReturnBikeCommand(bikeId, randomLocation()))
+    public CompletableFuture<String> returnBike(@RequestParam("bikeId") String bikeId,
+                                                @RequestParam("rentalReference") String rentalReference) {
+        return commandGateway.send(new ReturnBikeCommand(bikeId, rentalReference, randomLocation()))
                              .resultAs(String.class);
     }
 
     @PostMapping("/revokeRequest")
     public CompletableFuture<Void> revokeRequest(@RequestParam("bikeId") String bikeId,
-                                                 @RequestParam("renter") String renter) {
-        return commandGateway.send(new RejectRequestCommand(bikeId, renter), Void.class);
+                                                 @RequestParam("rentalReference") String rentalReference) {
+        return commandGateway.send(new RejectRequestCommand(bikeId, rentalReference), Void.class);
     }
 
     @GetMapping(value = "watch", produces = "text/event-stream")
@@ -169,18 +170,18 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
         CompletableFuture<String> result = selectRandomAvailableBike(bikeType)
                 .thenCompose(bikeId -> commandGateway.send(new RequestBikeCommand(bikeId, renter))
                                                      .resultAs(String.class)
-                                                     .thenComposeAsync(paymentRef -> executePayment(bikeId,
-                                                                                                    paymentRef,
-                                                                                                    abandonPaymentFactor),
+                                                     .thenComposeAsync(rentalRef -> executePayment(bikeId,
+                                                                                                   rentalRef,
+                                                                                                   abandonPaymentFactor)
+                                                                               .thenCompose(r -> whenBikeUnlocked(bikeId))
+                                                                               .thenComposeAsync(r -> commandGateway.send(new ReturnBikeCommand(
+                                                                                                         bikeId,
+                                                                                                         rentalRef,
+                                                                                                         randomLocation())).getResultMessage(),
+                                                                                                 CompletableFuture.delayedExecutor(randomDelay(delay), TimeUnit.MILLISECONDS))
+                                                                               .thenApply(r -> bikeId),
                                                                        CompletableFuture.delayedExecutor(randomDelay(
-                                                                               delay), TimeUnit.MILLISECONDS))
-                                                     .thenCompose(r -> whenBikeUnlocked(bikeId))
-                                                     .thenComposeAsync(r -> commandGateway.send(new ReturnBikeCommand(
-                                                                               bikeId,
-                                                                               randomLocation())).getResultMessage(),
-                                                                       CompletableFuture.delayedExecutor(randomDelay(
-                                                                               delay), TimeUnit.MILLISECONDS))
-                                                     .thenApply(r -> bikeId));
+                                                                               delay), TimeUnit.MILLISECONDS)));
         return Mono.fromFuture(result);
     }
 

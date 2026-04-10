@@ -78,7 +78,7 @@ class PaymentSagaTest {
                .when()
                .event(new PaymentConfirmedEvent("paymentId", "rentalRef"))
                .then()
-               .commands(new ApproveRequestCommand("bikeId", "renter"));
+               .commands(new ApproveRequestCommand("bikeId", "rentalRef"));
     }
 
     @Test
@@ -88,7 +88,7 @@ class PaymentSagaTest {
                .when()
                .event(new PaymentRejectedEvent("paymentId", "rentalRef"))
                .then()
-               .commands(new RejectRequestCommand("bikeId", "renter"));
+               .commands(new RejectRequestCommand("bikeId", "rentalRef"));
     }
 
     @Test
@@ -96,7 +96,7 @@ class PaymentSagaTest {
         fixture.given()
                .events(new BikeRequestedEvent("bikeId", "renter", "rentalRef"))
                .when()
-               .event(new RequestRejectedEvent("bikeId"))
+               .event(new RequestRejectedEvent("bikeId", "rentalRef"))
                .then()
                .noCommands();
     }

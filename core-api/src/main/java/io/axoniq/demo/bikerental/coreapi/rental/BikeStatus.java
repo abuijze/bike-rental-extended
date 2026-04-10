@@ -13,6 +13,7 @@ public class BikeStatus {
     private String bikeType;
     private String location;
     private String renter;
+    private String rentalReference;
     private RentalStatus status;
 
     public BikeStatus() {
@@ -37,14 +38,16 @@ public class BikeStatus {
         this.location = location;
         this.status = RentalStatus.AVAILABLE;
         this.renter = null;
+        this.rentalReference = null;
     }
 
     public String getRenter() {
         return renter;
     }
 
-    public void requestedBy(String renter) {
+    public void requestedBy(String renter, String rentalReference) {
         this.renter = renter;
+        this.rentalReference = rentalReference;
         this.status = RentalStatus.REQUESTED;
     }
 
@@ -68,6 +71,10 @@ public class BikeStatus {
             default:
                 return "Status unknown";
         }
+    }
+
+    public String getRentalReference() {
+        return rentalReference;
     }
 
     public String getBikeType() {

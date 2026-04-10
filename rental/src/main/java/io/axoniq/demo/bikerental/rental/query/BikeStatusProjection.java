@@ -31,7 +31,7 @@ public class BikeStatusProjection {
     public void on(Map<String, Object> event, QueryUpdateEmitter updateEmitter) {
         bikeStatusRepository.findById((String) event.get("bikeId"))
                             .map(bs -> {
-                                bs.requestedBy((String) event.get("renter"));
+                                bs.requestedBy((String) event.get("renter"), (String) event.get("rentalReference"));
                                 return bs;
                             })
                             .ifPresent(bs -> {

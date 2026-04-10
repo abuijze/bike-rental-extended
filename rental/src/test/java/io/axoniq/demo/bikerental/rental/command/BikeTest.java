@@ -4,6 +4,7 @@ import io.axoniq.demo.bikerental.coreapi.rental.*;
 import org.axonframework.eventsourcing.configuration.EventSourcedEntityModule;
 import org.axonframework.eventsourcing.configuration.EventSourcingConfigurer;
 import org.axonframework.messaging.commandhandling.CommandExecutionException;
+import org.axonframework.messaging.commandhandling.configuration.CommandHandlingModule;
 import org.axonframework.test.fixture.AxonTestFixture;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,11 @@ class BikeTest {
     @BeforeEach
     void setUp() {
         fixture = AxonTestFixture.with(EventSourcingConfigurer.create()
-                                                              .registerEntity(EventSourcedEntityModule.autodetected(String.class, Bike.class)),
+                                                              .registerEntity(EventSourcedEntityModule.autodetected(String.class, BikeState.class))
+                                                              .registerEntity(EventSourcedEntityModule.autodetected(String.class, RentalState.class))
+                                                              .registerCommandHandlingModule(CommandHandlingModule.named("rental")
+                                                                                                                  .commandHandlers()
+                                                                                                                  .autodetectedCommandHandlingComponent(c -> new BikeCommandHandler())),
                                        AxonTestFixture.Customization::disableAxonServer);
     }
 
@@ -36,7 +41,8 @@ class BikeTest {
     @Test
     void canRequestAvailableBike() {
         fixture.given().event(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"))
-               .when().command(new RequestBikeCommand("bikeId", "rider"))
+               .when()
+               .command(new RequestBikeCommand("bikeId", "rider"))
                 .then()
                .resultMessagePayloadSatisfies(String.class, i -> assertThat(i).isNotBlank())
                .eventsMatch(l -> l.size() == 1 && l.getFirst().payloadAs(BikeRequestedEvent.class)
@@ -58,37 +64,37 @@ class BikeTest {
     void canApproveRequestedBike() {
         fixture.given().events(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"),
                                new BikeRequestedEvent("bikeId", "rider", "rentalId"))
-               .when().command(new ApproveRequestCommand("bikeId", "rider"))
+               .when().command(new ApproveRequestCommand("bikeId", "rentalId"))
                .then()
                .success()
-               .events(new BikeInUseEvent("bikeId", "rider"));
+               .events(new BikeInUseEvent("bikeId", "rider", "rentalId"));
     }
 
     @Test
     void canRejectRequestedBike() {
         fixture.given().events(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"),
                                new BikeRequestedEvent("bikeId", "rider", "rentalId"))
-               .when().command(new RejectRequestCommand("bikeId", "rider"))
+               .when().command(new RejectRequestCommand("bikeId", "rentalId"))
                .then()
                .success()
-               .events(new RequestRejectedEvent("bikeId"));
+               .events(new RequestRejectedEvent("bikeId", "rentalId"));
     }
 
     @Test
-    void canNotRejectRequestedForWrongRequester() {
+    void canNotRejectWithUnknownRentalReference() {
         fixture.given().events(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"),
                                new BikeRequestedEvent("bikeId", "rider", "rentalId"))
-               .when().command(new RejectRequestCommand("bikeId", "otherRider"))
+               .when().command(new RejectRequestCommand("bikeId", "wrongRentalId"))
                .then()
                .success()
                .eventsMatch(List::isEmpty);
     }
 
     @Test
-    void cannotApproveRequestedForAnotherRider() {
+    void cannotApproveWithUnknownRentalReference() {
         fixture.given().events(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"),
                                new BikeRequestedEvent("bikeId", "rider", "rentalId"))
-               .when().command(new ApproveRequestCommand("bikeId", "otherRider"))
+               .when().command(new ApproveRequestCommand("bikeId", "wrongRentalId"))
                .then()
                .success()
                .eventsMatch(List::isEmpty);
@@ -98,18 +104,18 @@ class BikeTest {
     void canReturnedBikeInUse() {
         fixture.given().events(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"),
                                new BikeRequestedEvent("bikeId", "rider", "rentalId"),
-                               new BikeInUseEvent("bikeId", "rider"))
-               .when().command(new ReturnBikeCommand("bikeId", "NewLocation"))
+                               new BikeInUseEvent("bikeId", "rider", "rentalId"))
+               .when().command(new ReturnBikeCommand("bikeId", "rentalId", "NewLocation"))
                .then()
                .success()
-               .events(new BikeReturnedEvent("bikeId", "NewLocation"));
+               .events(new BikeReturnedEvent("bikeId", "rentalId", "NewLocation"));
     }
 
     @Test
     void cannotRequestBikeInUse() {
         fixture.given().events(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"),
                                new BikeRequestedEvent("bikeId", "rider", "rentalId"),
-                               new BikeInUseEvent("bikeId", "rider"))
+                               new BikeInUseEvent("bikeId", "rider", "rentalId"))
                .when().command(new RequestBikeCommand("bikeId", "otherRenter"))
                .then()
                .exception(CommandExecutionException.class)
@@ -120,8 +126,8 @@ class BikeTest {
     void canRequestReturnedBike() {
         fixture.given().events(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"),
                                new BikeRequestedEvent("bikeId", "rider", "rentalId"),
-                               new BikeInUseEvent("bikeId", "rider"),
-                               new BikeReturnedEvent("bikeId", "NewLocation"))
+                               new BikeInUseEvent("bikeId", "rider", "rentalId"),
+                               new BikeReturnedEvent("bikeId", "rentalId", "NewLocation"))
                .when().command(new RequestBikeCommand("bikeId", "newRider"))
                .then()
                .success()
@@ -134,7 +140,7 @@ class BikeTest {
     void canRequestRejectedBike() {
         fixture.given().events(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"),
                                new BikeRequestedEvent("bikeId", "rider", "rentalId"),
-                               new RequestRejectedEvent("bikeId"))
+                               new RequestRejectedEvent("bikeId", "rentalId"))
                .when().command(new RequestBikeCommand("bikeId", "newRider"))
                .then()
                .success()

@@ -4,5 +4,5 @@ import org.axonframework.eventsourcing.annotation.EventTag;
 import org.axonframework.messaging.eventhandling.annotation.Event;
 
 @Event
-public record BikeRequestedEvent(@EventTag(key = "Bike") String bikeId, String renter, String rentalReference) {
+public record BikeRequestedEvent(@EventTag(key = "Bike") String bikeId, String renter, @EventTag(key = "Rental") String rentalReference) {
 }

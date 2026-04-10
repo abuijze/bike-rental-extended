@@ -38,7 +38,7 @@ public class PaymentSaga {
         repository.findById(event.paymentReference())
                   .ifPresent(status -> {
                       status.setStatus(PaymentState.Status.CONFIRMED);
-                      commandDispatcher.send(new ApproveRequestCommand(status.bikeId(), status.renter()));
+                      commandDispatcher.send(new ApproveRequestCommand(status.bikeId(), status.paymentReference()));
                   });
     }
 
@@ -47,7 +47,7 @@ public class PaymentSaga {
         repository.findById(event.paymentReference())
                   .ifPresent(state -> {
                       state.setStatus(PaymentState.Status.REJECTED);
-                      commandDispatcher.send(new RejectRequestCommand(state.bikeId(), state.renter()));
+                      commandDispatcher.send(new RejectRequestCommand(state.bikeId(), state.paymentReference()));
                   });
     }
 

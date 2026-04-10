@@ -5,8 +5,8 @@ interface Bike {
   bikeType: string
   location: string
   renter: string
+  rentalReference: string
   status: 'AVAILABLE' | 'REQUESTED' | 'RENTED'
-  paymentRef?: string
 }
 
 interface GenerateBikesParams {
@@ -65,14 +65,7 @@ export const useBikeStore = defineStore('bikes', {
       })
       
       if (response.ok) {
-        const paymentRef = await response.text()
-        // Store payment reference for this bike
-        const bike = this.bikesInTheSystem.get(bikeId)
-        if (bike) {
-          bike.paymentRef = paymentRef.trim()
-          this.bikesInTheSystem.set(bikeId, bike)
-        }
-        return paymentRef.trim()
+        return (await response.text()).trim()
       }
       throw new Error('Failed to request bike')
     },
@@ -80,8 +73,12 @@ export const useBikeStore = defineStore('bikes', {
     async returnBikeManual(bikeId: string) {
       const config = useRuntimeConfig()
       const url = config.public.apiBase
-      
-      await fetch(`${url}/returnBike?bikeId=${bikeId}`, {
+
+      const rentalReference = this.bikesInTheSystem.get(bikeId)?.rentalReference
+      if (!rentalReference) {
+        throw new Error('No rental reference found for bike ' + bikeId)
+      }
+      await fetch(`${url}/returnBike?bikeId=${bikeId}&rentalReference=${rentalReference}`, {
         method: "POST"
       })
     },
@@ -102,11 +99,6 @@ export const useBikeStore = defineStore('bikes', {
     },
     
     recordUpdate(update: Bike) {
-      // Preserve payment reference when updating from server
-      const existingBike = this.bikesInTheSystem.get(update.bikeId)
-      if (existingBike?.paymentRef) {
-        update.paymentRef = existingBike.paymentRef
-      }
       this.bikesInTheSystem.set(update.bikeId, update)
     },
     
@@ -130,11 +122,11 @@ export const useBikeStore = defineStore('bikes', {
       }
     },
     
-    async revokeRequest(bikeId: string, renter: string) {
+    async revokeRequest(bikeId: string, rentalReference: string) {
       const config = useRuntimeConfig()
       const url = config.public.apiBase
 
-      const response = await fetch(`${url}/revokeRequest?bikeId=${bikeId}&renter=${encodeURIComponent(renter)}`, {
+      const response = await fetch(`${url}/revokeRequest?bikeId=${bikeId}&rentalReference=${encodeURIComponent(rentalReference)}`, {
         method: "POST"
       })
       if (!response.ok) {
