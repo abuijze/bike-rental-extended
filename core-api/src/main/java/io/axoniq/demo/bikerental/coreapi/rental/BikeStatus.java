@@ -41,6 +41,12 @@ public class BikeStatus {
         this.rentalReference = null;
     }
 
+    public void requestCancelled() {
+        this.status = RentalStatus.AVAILABLE;
+        this.renter = null;
+        this.rentalReference = null;
+    }
+
     public String getRenter() {
         return renter;
     }

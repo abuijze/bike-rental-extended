@@ -2,6 +2,7 @@ package io.axoniq.demo.bikerental.payment;
 
 import io.axoniq.demo.bikerental.coreapi.payment.*;
 import org.axonframework.messaging.eventhandling.annotation.EventHandler;
+import org.axonframework.messaging.eventhandling.replay.annotation.ResetHandler;
 import org.axonframework.messaging.queryhandling.QueryUpdateEmitter;
 import org.axonframework.messaging.queryhandling.annotation.QueryHandler;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,11 @@ public class PaymentStatusProjection {
 
     public PaymentStatusProjection(PaymentStatusRepository paymentStatusRepository) {
         this.paymentStatusRepository = paymentStatusRepository;
+    }
+
+    @ResetHandler
+    public void onReset() {
+        paymentStatusRepository.deleteAll();
     }
 
     @QueryHandler
@@ -44,11 +50,11 @@ public class PaymentStatusProjection {
 
     @EventHandler
     public void handle(PaymentConfirmedEvent event) {
-        paymentStatusRepository.findById(event.paymentId()).ifPresent(s -> s.withStatus(APPROVED));
+        paymentStatusRepository.updateStatus(event.paymentId(), APPROVED);
     }
 
     @EventHandler
     public void handle(PaymentRejectedEvent event) {
-        paymentStatusRepository.findById(event.paymentId()).ifPresent(s -> s.withStatus(REJECTED));
+        paymentStatusRepository.updateStatus(event.paymentId(), REJECTED);
     }
 }

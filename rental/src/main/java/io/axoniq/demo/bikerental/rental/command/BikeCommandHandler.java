@@ -30,14 +30,14 @@ public class BikeCommandHandler {
     @CommandHandler
     public void handle(ApproveRequestCommand command, @InjectEntity(idProperty = "rentalReference") RentalState rental, EventAppender appender) {
         if (rental.isActive() && !rental.isConfirmed()) {
-            appender.append(new BikeInUseEvent(command.bikeId(), rental.getRenter(), command.rentalReference()));
+            appender.append(new BikeInUseEvent(rental.getBikeId(), rental.getRenter(), command.rentalReference()));
         }
     }
 
     @CommandHandler
     public void handle(RejectRequestCommand command, @InjectEntity(idProperty = "rentalReference") RentalState rental, EventAppender appender) {
         if (rental.isActive() && !rental.isConfirmed()) {
-            appender.append(new RequestRejectedEvent(command.bikeId(), command.rentalReference()));
+            appender.append(new RequestRejectedEvent(rental.getBikeId(), command.rentalReference()));
         }
     }
 

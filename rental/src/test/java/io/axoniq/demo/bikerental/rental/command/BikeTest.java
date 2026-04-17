@@ -6,6 +6,7 @@ import org.axonframework.eventsourcing.configuration.EventSourcingConfigurer;
 import org.axonframework.messaging.commandhandling.CommandExecutionException;
 import org.axonframework.messaging.commandhandling.configuration.CommandHandlingModule;
 import org.axonframework.test.fixture.AxonTestFixture;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,6 +17,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class BikeTest {
 
     private AxonTestFixture fixture;
+
+    @AfterEach
+    void tearDown() {
+        fixture.stop();
+    }
 
     @BeforeEach
     void setUp() {
@@ -64,7 +70,7 @@ class BikeTest {
     void canApproveRequestedBike() {
         fixture.given().events(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"),
                                new BikeRequestedEvent("bikeId", "rider", "rentalId"))
-               .when().command(new ApproveRequestCommand("bikeId", "rentalId"))
+               .when().command(new ApproveRequestCommand("rentalId"))
                .then()
                .success()
                .events(new BikeInUseEvent("bikeId", "rider", "rentalId"));
@@ -74,7 +80,7 @@ class BikeTest {
     void canRejectRequestedBike() {
         fixture.given().events(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"),
                                new BikeRequestedEvent("bikeId", "rider", "rentalId"))
-               .when().command(new RejectRequestCommand("bikeId", "rentalId"))
+               .when().command(new RejectRequestCommand("rentalId"))
                .then()
                .success()
                .events(new RequestRejectedEvent("bikeId", "rentalId"));
@@ -84,7 +90,7 @@ class BikeTest {
     void canNotRejectWithUnknownRentalReference() {
         fixture.given().events(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"),
                                new BikeRequestedEvent("bikeId", "rider", "rentalId"))
-               .when().command(new RejectRequestCommand("bikeId", "wrongRentalId"))
+               .when().command(new RejectRequestCommand("wrongRentalId"))
                .then()
                .success()
                .eventsMatch(List::isEmpty);
@@ -94,7 +100,7 @@ class BikeTest {
     void cannotApproveWithUnknownRentalReference() {
         fixture.given().events(new BikeRegisteredEvent("bikeId", "city", "Amsterdam"),
                                new BikeRequestedEvent("bikeId", "rider", "rentalId"))
-               .when().command(new ApproveRequestCommand("bikeId", "wrongRentalId"))
+               .when().command(new ApproveRequestCommand("wrongRentalId"))
                .then()
                .success()
                .eventsMatch(List::isEmpty);

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.axoniq.demo.bikerental.coreapi.rental.*;
 import org.axonframework.messaging.eventhandling.annotation.EventHandler;
+import org.axonframework.messaging.eventhandling.replay.annotation.ResetHandler;
 import org.axonframework.messaging.queryhandling.QueryUpdateEmitter;
 import org.axonframework.messaging.queryhandling.annotation.QueryHandler;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,11 @@ public class BikeStatusProjection {
 
     public BikeStatusProjection(BikeStatusRepository bikeStatusRepository) {
         this.bikeStatusRepository = bikeStatusRepository;
+    }
+
+    @ResetHandler
+    public void onReset() {
+        bikeStatusRepository.deleteAll();
     }
 
     @EventHandler
@@ -71,7 +77,7 @@ public class BikeStatusProjection {
     public void on(RequestRejectedEvent event, QueryUpdateEmitter updateEmitter) {
         bikeStatusRepository.findById(event.bikeId())
                             .map(bs -> {
-                                bs.returnedAt(bs.getLocation());
+                                bs.requestCancelled();
                                 return bs;
                             })
                             .ifPresent(bs -> {

@@ -22,14 +22,14 @@ public class PaymentCommandHandler {
     }
 
     @CommandHandler
-    void handle(ConfirmPaymentCommand command, @InjectEntity Payment payment, EventAppender appender) {
+    void handle(ConfirmPaymentCommand command, @InjectEntity(idProperty = "paymentId") Payment payment, EventAppender appender) {
         if (!payment.isClosed()) {
             appender.append(new PaymentConfirmedEvent(command.paymentId(), payment.getPaymentReference()));
         }
     }
 
     @CommandHandler
-    void handle(RejectPaymentCommand command, @InjectEntity Payment payment, EventAppender appender) {
+    void handle(RejectPaymentCommand command, @InjectEntity(idProperty = "paymentId") Payment payment, EventAppender appender) {
         if (!payment.isClosed()) {
             appender.append(new PaymentRejectedEvent(command.paymentId(), payment.getPaymentReference()));
         }

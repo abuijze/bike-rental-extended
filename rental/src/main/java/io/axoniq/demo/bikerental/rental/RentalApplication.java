@@ -1,7 +1,9 @@
 package io.axoniq.demo.bikerental.rental;
 
 import io.axoniq.demo.bikerental.coreapi.rental.BikeStatus;
+import io.axoniq.demo.bikerental.rental.paymentsaga.PaymentSaga;
 import io.axoniq.demo.bikerental.rental.paymentsaga.PaymentState;
+import org.axonframework.extension.spring.config.EventProcessorDefinition;
 import org.axonframework.messaging.eventhandling.processing.streaming.token.store.jpa.TokenEntry;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,6 +26,13 @@ public class RentalApplication {
     @Bean(destroyMethod = "shutdown")
     public ScheduledExecutorService workerExecutorService() {
         return Executors.newScheduledThreadPool(4);
+    }
+
+    @Bean
+    EventProcessorDefinition paymentSagaProcessor() {
+        return EventProcessorDefinition.pooledStreaming("io.axoniq.demo.bikerental.rental.paymentsaga")
+                .assigningHandlers(eh -> PaymentSaga.class.equals(eh.beanType()))
+                .customized(p -> p.initialToken(ts -> ts.latestToken(null)));
     }
 
 }

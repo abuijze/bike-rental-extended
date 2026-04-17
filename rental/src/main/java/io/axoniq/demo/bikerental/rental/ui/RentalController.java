@@ -116,9 +116,8 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
     }
 
     @PostMapping("/revokeRequest")
-    public CompletableFuture<Void> revokeRequest(@RequestParam("bikeId") String bikeId,
-                                                 @RequestParam("rentalReference") String rentalReference) {
-        return commandGateway.send(new RejectRequestCommand(bikeId, rentalReference), Void.class);
+    public CompletableFuture<Void> revokeRequest(@RequestParam("rentalReference") String rentalReference) {
+        return commandGateway.send(new RejectRequestCommand(rentalReference), Void.class);
     }
 
     @GetMapping(value = "watch", produces = "text/event-stream")

@@ -11,6 +11,7 @@ import io.axoniq.demo.bikerental.coreapi.rental.RequestRejectedEvent;
 import org.axonframework.messaging.commandhandling.gateway.CommandGateway;
 import org.axonframework.messaging.core.configuration.MessagingConfigurer;
 import org.axonframework.test.fixture.AxonTestFixture;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,6 +30,11 @@ class PaymentSagaTest {
     private PaymentSaga paymentSaga;
     private AxonTestFixture fixture;
     private Map<String, PaymentState> stateStore;
+
+    @AfterEach
+    void tearDown() {
+        fixture.stop();
+    }
 
     @BeforeEach
     void setUp() {
@@ -78,7 +84,7 @@ class PaymentSagaTest {
                .when()
                .event(new PaymentConfirmedEvent("paymentId", "rentalRef"))
                .then()
-               .commands(new ApproveRequestCommand("bikeId", "rentalRef"));
+               .commands(new ApproveRequestCommand("rentalRef"));
     }
 
     @Test
@@ -88,7 +94,7 @@ class PaymentSagaTest {
                .when()
                .event(new PaymentRejectedEvent("paymentId", "rentalRef"))
                .then()
-               .commands(new RejectRequestCommand("bikeId", "rentalRef"));
+               .commands(new RejectRequestCommand("rentalRef"));
     }
 
     @Test
@@ -103,7 +109,7 @@ class PaymentSagaTest {
 
     @Test
     void shouldRejectPaymentWhenNotConfirmedIn30Seconds() {
-        var preparedState = new PaymentState("rentalRef", "bikeId", "renter");
+        var preparedState = new PaymentState("rentalRef", "renter");
         preparedState.prepared("paymentId");
         when(repository.findAllByTimestampLessThanAndStatusIn(anyLong(), any(PaymentState.Status[].class)))
                 .thenReturn(List.of(preparedState));

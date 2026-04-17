@@ -7,7 +7,6 @@ import jakarta.persistence.Id;
 public class PaymentState {
     @Id
     private String paymentReference;
-    private String bikeId;
     private String renter;
     private Status status;
     private long timestamp;
@@ -16,9 +15,8 @@ public class PaymentState {
     public PaymentState() {
     }
 
-    public PaymentState(String paymentReference, String bikeId, String renter) {
+    public PaymentState(String paymentReference, String renter) {
         this.paymentReference = paymentReference;
-        this.bikeId = bikeId;
         this.renter = renter;
         this.status = Status.PENDING;
         this.timestamp = System.currentTimeMillis();
@@ -26,10 +24,6 @@ public class PaymentState {
 
     public String paymentReference() {
         return paymentReference;
-    }
-
-    public String bikeId() {
-        return bikeId;
     }
 
     public String renter() {
@@ -53,10 +47,11 @@ public class PaymentState {
         return paymentId;
     }
 
-    public static enum Status {
+    public enum Status {
         PENDING,
         PREPARED,
         CONFIRMED,
-        REJECTED
+        REJECTED,
+        CANCELLED
     }
 }

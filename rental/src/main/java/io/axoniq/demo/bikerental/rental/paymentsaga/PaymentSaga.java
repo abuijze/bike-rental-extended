@@ -28,41 +28,38 @@ public class PaymentSaga {
 
     @EventHandler
     public void on(BikeRequestedEvent event, CommandDispatcher commandDispatcher) {
-        repository.save(new PaymentState(event.rentalReference(), event.bikeId(), event.renter()));
+        repository.save(new PaymentState(event.rentalReference(), event.renter()));
         commandDispatcher.send(new PreparePaymentCommand(10, event.rentalReference()));
     }
 
     @EventHandler
     public void on(PaymentConfirmedEvent event, CommandDispatcher commandDispatcher) {
-        // we approve the bike request
-        repository.findById(event.paymentReference())
-                  .ifPresent(status -> {
-                      status.setStatus(PaymentState.Status.CONFIRMED);
-                      commandDispatcher.send(new ApproveRequestCommand(status.bikeId(), status.paymentReference()));
-                  });
+        repository.updateStatus(event.paymentReference(), PaymentState.Status.CONFIRMED);
+        commandDispatcher.send(new ApproveRequestCommand(event.paymentReference()));
     }
 
     @EventHandler
     public void on(PaymentRejectedEvent event, CommandDispatcher commandDispatcher) {
-        repository.findById(event.paymentReference())
-                  .ifPresent(state -> {
-                      state.setStatus(PaymentState.Status.REJECTED);
-                      commandDispatcher.send(new RejectRequestCommand(state.bikeId(), state.paymentReference()));
-                  });
+        repository.updateStatus(event.paymentReference(), PaymentState.Status.REJECTED);
+        commandDispatcher.send(new RejectRequestCommand(event.paymentReference()));
     }
 
     @Scheduled(fixedDelay = 1000)
     public void cancelLatePayments() {
         long cutoffTime = System.currentTimeMillis() - Duration.ofSeconds(10).toMillis();
         repository.findAllByTimestampLessThanAndStatusIn(cutoffTime, PaymentState.Status.PREPARED, PaymentState.Status.PENDING)
-                  .forEach(state -> {if(state.paymentId() != null) commandGateway.send(new RejectPaymentCommand(state.paymentId())); });
+                  .forEach(state -> {
+                      if (state.paymentId() != null) {
+                          commandGateway.send(new RejectPaymentCommand(state.paymentId()));
+                      } else {
+                          repository.updateStatus(state.paymentReference(), PaymentState.Status.CANCELLED);
+                          commandGateway.send(new RejectRequestCommand(state.paymentReference()));
+                      }
+                  });
     }
 
     @EventHandler
     public void on(PaymentPreparedEvent event) {
-        repository.findById(event.paymentReference())
-                  .ifPresent(state -> {
-                      state.prepared(event.paymentId());
-                  });
+        repository.updateStatusAndPaymentId(event.paymentReference(), event.paymentId(), PaymentState.Status.PREPARED);
     }
 }
