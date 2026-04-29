@@ -1,12 +1,10 @@
 package io.axoniq.demo.bikerental.payment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.axoniq.demo.bikerental.coreapi.payment.PaymentStatus;
 import org.axonframework.messaging.eventhandling.processing.streaming.token.store.jpa.TokenEntry;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
 
 import java.util.concurrent.Executors;
@@ -25,8 +23,4 @@ public class PaymentApplication {
         return Executors.newScheduledThreadPool(4);
     }
 
-    @Autowired
-    public void configureSerializers(ObjectMapper objectMapper) {
-        objectMapper.activateDefaultTyping(objectMapper.getPolymorphicTypeValidator(), ObjectMapper.DefaultTyping.JAVA_LANG_OBJECT);
-    }
 }

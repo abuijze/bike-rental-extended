@@ -4,6 +4,7 @@ import io.axoniq.demo.bikerental.coreapi.payment.ConfirmPaymentCommand;
 import io.axoniq.demo.bikerental.coreapi.payment.GetPaymentIdQuery;
 import io.axoniq.demo.bikerental.coreapi.payment.RejectPaymentCommand;
 import io.axoniq.demo.bikerental.coreapi.rental.*;
+import org.axonframework.common.lifecycle.ShutdownInProgressException;
 import org.axonframework.messaging.commandhandling.gateway.CommandGateway;
 import org.axonframework.messaging.queryhandling.gateway.QueryGateway;
 import org.springframework.http.HttpEntity;
@@ -33,10 +34,12 @@ public class RentalController {
     private static final List<String> LOCATIONS = Arrays.asList("Amsterdam", "Paris", "Vilnius", "Barcelona", "London", "New York", "Toronto", "Berlin", "Milan", "Rome", "Belgrade");
     private final CommandGateway commandGateway;
     private final QueryGateway queryGateway;
+    private final ShutdownListener shutdownListener;
 
-    public RentalController(CommandGateway commandGateway, QueryGateway queryGateway) {
+    public RentalController(CommandGateway commandGateway, QueryGateway queryGateway, ShutdownListener shutdownListener) {
         this.commandGateway = commandGateway;
         this.queryGateway = queryGateway;
+        this.shutdownListener = shutdownListener;
     }
 
     @PostMapping("/bikes")
@@ -86,8 +89,10 @@ See https://html.spec.whatwg.org/multipage/server-sent-events.html#the-eventsour
  */
     @GetMapping("/bikeUpdatesJson")
     public Flux<ServerSentEvent<BikeStatus>> subscribeToAllUpdatesJson() {
-        return Flux.from(queryGateway.subscriptionQuery(FIND_ALL_QUERY, BikeStatus.class))
-                   .map(description -> ServerSentEvent.builder(description).build());
+        return shutdownListener
+                .closedOnShutdown(queryGateway.subscriptionQuery(FIND_ALL_QUERY, BikeStatus.class))
+                .map(description -> ServerSentEvent.builder(description).build())
+                .onErrorComplete(ShutdownInProgressException.class);
 
     }
 

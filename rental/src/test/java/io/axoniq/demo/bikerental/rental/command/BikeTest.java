@@ -30,8 +30,7 @@ class BikeTest {
                                                               .registerEntity(EventSourcedEntityModule.autodetected(String.class, RentalState.class))
                                                               .registerCommandHandlingModule(CommandHandlingModule.named("rental")
                                                                                                                   .commandHandlers()
-                                                                                                                  .autodetectedCommandHandlingComponent(c -> new BikeCommandHandler())),
-                                       AxonTestFixture.Customization::disableAxonServer);
+                                                                                                                  .autodetectedCommandHandlingComponent(c -> new BikeCommandHandler())));
     }
 
     @Test

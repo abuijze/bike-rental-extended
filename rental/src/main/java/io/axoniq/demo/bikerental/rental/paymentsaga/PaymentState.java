@@ -7,7 +7,6 @@ import jakarta.persistence.Id;
 public class PaymentState {
     @Id
     private String paymentReference;
-    private String renter;
     private Status status;
     private long timestamp;
     private String paymentId;
@@ -15,19 +14,14 @@ public class PaymentState {
     public PaymentState() {
     }
 
-    public PaymentState(String paymentReference, String renter) {
+    public PaymentState(String paymentReference) {
         this.paymentReference = paymentReference;
-        this.renter = renter;
         this.status = Status.PENDING;
         this.timestamp = System.currentTimeMillis();
     }
 
     public String paymentReference() {
         return paymentReference;
-    }
-
-    public String renter() {
-        return renter;
     }
 
     public Status status() {

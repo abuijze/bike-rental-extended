@@ -7,14 +7,12 @@ import org.axonframework.extension.spring.config.EventProcessorDefinition;
 import org.axonframework.messaging.eventhandling.processing.streaming.token.store.jpa.TokenEntry;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-@EnableScheduling
 @EntityScan(basePackageClasses = {BikeStatus.class, PaymentState.class, TokenEntry.class})
 @SpringBootApplication
 public class RentalApplication {
